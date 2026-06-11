@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Evidence Watchers Wikipedia · Databaseless Wiki Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f6f6f6;
+            font-family: 'Segoe UI', 'Linux Libertine', 'Georgia', 'Times New Roman', Times, serif;
+            color: #202122;
+            line-height: 1.5;
+        }
+
+        .wiki-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            min-height: 100vh;
+        }
+
+        .wiki-header {
+            background: #ffffff;
+            border-bottom: 1px solid #a7d7f9;
+            padding: 1.2rem 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 1rem;
+        }
+        .site-title {
+            font-size: 1.8rem;
+            font-weight: normal;
+            font-family: 'Linux Libertine', 'Georgia', serif;
+        }
+        .site-title span {
+            font-weight: bold;
+            border-bottom: 2px solid #3366bb;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .wiki-btn {
+            background: #f8f9fa;
+            border: 1px solid #a2a9b1;
+            border-radius: 2px;
+            padding: 6px 12px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.1s;
+        }
+        .wiki-btn-primary {
+            background: #eaf3ff;
+            border-color: #3366bb;
+            color: #0645ad;
+        }
+        .wiki-btn-primary:hover {
+            background: #d9e8ff;
+        }
+        .wiki-btn:hover {
+            background: #ffffff;
+            border-color: #72777d;
+        }
+        .editor-panel {
+            background: #fef6e7;
+            border-bottom: 1px solid #ffdfb3;
+            padding: 1.5rem 2rem;
+            transition: all 0.2s;
+        }
+        .editor-title {
+            font-weight: 500;
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+            color: #2c3e50;
+        }
+        textarea {
+            width: 100%;
+            min-height: 280px;
+            font-family: 'Courier New', 'SF Mono', monospace;
+            font-size: 14px;
+            padding: 16px;
+            border: 1px solid #c8ccd1;
+            border-radius: 4px;
+            background: white;
+            resize: vertical;
+            line-height: 1.45;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #3366bb;
+            box-shadow: 0 0 0 2px rgba(51,102,187,0.2);
+        }
+        .embed-helper {
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #4d5a6e;
+            background: #fff3e0;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+        .password-section {
+            margin-top: 18px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            border-top: 1px dashed #ddd;
+            padding-top: 18px;
+        }
+        .pass-input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .pass-input-group label {
+            font-weight: 500;
+        }
+        input[type="password"], input[type="text"] {
+            padding: 6px 12px;
+            border: 1px solid #c8ccd1;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .warning {
+            color: #bc6c25;
+            font-size: 0.8rem;
+        }
+        .view-mode {
+            padding: 2rem 2rem 3rem 2rem;
+            background: white;
+        }
+        .article-content {
+            font-size: 1.05rem;
+            overflow-wrap: break-word;
+        }
+        .article-content iframe, .article-content img, .article-content .drive-preview {
+            max-width: 100%;
+            margin: 1rem 0;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+        }
+        .article-content img {
+            max-height: 500px;
+            object-fit: contain;
+        }
+        .article-content iframe {
+            width: 100%;
+            min-height: 315px;
+        }
+        .drive-preview {
+            background: #f0f2f5;
+            padding: 16px;
+            text-align: center;
+            border-radius: 12px;
+            display: inline-block;
+            width: 100%;
+        }
+        .footer-note {
+            text-align: center;
+            font-size: 0.75rem;
+            border-top: 1px solid #eaecf0;
+            padding: 1rem;
+            color: #6c757d;
+        }
+        .hidden {
+            display: none;
+        }
+        .url-bar-info {
+            background: #e8f0fe;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            margin-top: 12px;
+            font-family: monospace;
+            word-break: break-all;
+        }
+        @media (max-width: 700px) {
+            .wiki-header, .editor-panel, .view-mode {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="wiki-container" id="appRoot">
+    <div class="wiki-header">
+        <div class="site-title">📖 <span>Evidence Watchers Wikipedia</span> · the open evidence wiki</div>
+        <div class="action-buttons">
+            <button class="wiki-btn" id="editModeBtn">✏️ Edit / Create</button>
+            <button class="wiki-btn wiki-btn-primary" id="exportWikiBtn">🌍 Export & View Live</button>
+        </div>
+    </div>
+
+    <div id="editorPanel" class="editor-panel">
+        <div class="editor-title">📝 Full Wiki Content Editor (HTML + embeds supported)</div>
+        <textarea id="wikiTextarea" placeholder="Write your Evidence Watchers entry here... 
+
+You can embed anything:
+• YouTube videos: https://www.youtube.com/watch?v=VIDEOID
+• Images: https://i.postimg.cc/xxx.png
+• Google Drive folders/files: https://drive.google.com/drive/folders/xxx
+• Custom HTML, iframes, tables, etc.
+
+Example:
+&lt;h2&gt;My Evidence&lt;/h2&gt;
+&lt;p&gt;Check this video:&lt;/p&gt;
+https://www.youtube.com/watch?v=dQw4w9WgXcQ
+&lt;img src='https://i.postimg.cc/2SLkQpQv/Screenshot-20260528-175055-mark-via-gp.png'&gt;"></textarea>
+        <div class="embed-helper">
+            💡 <strong>Smart embed:</strong> YouTube links → iframes, image links → &lt;img&gt;, Google Drive links → rich preview blocks.
+        </div>
+
+        <div class="password-section">
+            <div class="pass-input-group">
+                <label>🔒 Wiki Password (optional):</label>
+                <input type="password" id="wikiPassword" placeholder="leave empty = no password" autocomplete="off">
+            </div>
+            <label class="checkbox-label">
+                <input type="checkbox" id="encryptUrlCheckbox"> ✨ Encrypt content in URL (split+reverse+chunks) when password enabled
+            </label>
+            <span class="warning">⚠️ If password set, exported page will ask for password before showing content. URL will contain encrypted data.</span>
+        </div>
+        <div style="margin-top: 12px; font-size: 0.8rem; text-align: right;">
+            ✅ Everything in textarea becomes final page (innerHTML)
+        </div>
+    </div>
+
+    <div id="viewContainer" class="view-mode">
+        <div id="wikiRender" class="article-content">
+            <div style="text-align:center; padding: 2rem;">
+                <h2>Evidence Watchers Wikipedia</h2>
+                <p>Click <strong>✏️ Edit / Create</strong> to start building your databaseless wiki.<br>
+                Embed videos, images, Google Drive, custom HTML. Then click <strong>Export & View Live</strong> to see final page (password protected if set).</p>
+                <hr>
+                <i>— every export creates a standalone secured wiki snapshot —</i>
+            </div>
+        </div>
+        <div class="footer-note">
+            Evidence Watchers · Open knowledge, embedded evidence.
+        </div>
+    </div>
+</div>
+
+<script>
+    // Smart embed transformer
+    function transformEmbeddedContent(rawHtml) {
+        if (!rawHtml || rawHtml.trim() === '') return '<p><em>Empty wiki content. Go to Edit mode and add evidence.</em></p>';
+        let processed = rawHtml;
+        
+        const youtubeRegex = /(https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([\w-]+)(?:&[\w=]*)?|https?:\/\/(?:www\.)?youtu\.be\/([\w-]+))/gi;
+        processed = processed.replace(youtubeRegex, (match, p1, p2, p3) => {
+            let videoId = p2 || p3;
+            if (videoId) {
+                return `<div style="margin:16px 0;"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="width:100%; aspect-ratio:16/9; border-radius:8px;"></iframe></div>`;
+            }
+            return match;
+        });
+
+        const imageRegex = /(https?:\/\/[^\s<]+\.(?:jpg|jpeg|png|gif|webp|svg|bmp)(?:\?[^\s<]*)?)/gi;
+        processed = processed.replace(imageRegex, (url) => {
+            if (processed.includes(`src="${url}"`) || processed.includes(`src='${url}'`)) return url;
+            return `<img src="${url}" alt="evidence image" style="max-width:100%; border-radius:8px; margin:12px 0; box-shadow:0 1px 3px rgba(0,0,0,0.1);" loading="lazy">`;
+        });
+
+        const driveRegex = /(https?:\/\/drive\.google\.com\/(?:drive\/folders\/[a-zA-Z0-9_-]+|file\/d\/[a-zA-Z0-9_-]+(?:\/view)?|open\?id=[a-zA-Z0-9_-]+))/gi;
+        processed = processed.replace(driveRegex, (driveUrl) => {
+            let folderIdMatch = driveUrl.match(/folders\/([a-zA-Z0-9_-]+)/);
+            let fileIdMatch = driveUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            let openIdMatch = driveUrl.match(/open\?id=([a-zA-Z0-9_-]+)/);
+            
+            if (folderIdMatch) {
+                const folderId = folderIdMatch[1];
+                const embedPreviewUrl = `https://drive.google.com/embeddedfolderview?id=${folderId}#list`;
+                return `<div style="border:1px solid #dadde1; background:#fafbfd; padding:14px; border-radius:14px; margin:14px 0;">
+                            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                                <span style="font-size:2rem;">📁</span>
+                                <div style="flex:1"><strong>Google Drive Folder</strong><br><a href="${driveUrl}" target="_blank" rel="noopener noreferrer">Open in Drive →</a></div>
+                            </div>
+                            <div style="margin-top:12px;"><iframe src="${embedPreviewUrl}" style="width:100%; height:240px; border:0; border-radius:10px; background:#f5f5f5;" allowfullscreen></iframe></div>
+                        </div>`;
+            } else if (fileIdMatch || openIdMatch) {
+                const fileId = fileIdMatch ? fileIdMatch[1] : openIdMatch[1];
+                const directLink = `https://drive.google.com/file/d/${fileId}/preview`;
+                return `<div style="border:1px solid #dadde1; background:#fafbfd; padding:14px; border-radius:14px; margin:14px 0;">
+                            <div style="display:flex; gap:12px; align-items:center;">
+                                <span style="font-size:1.8rem;">📄</span>
+                                <div><strong>Google Drive File</strong><br><a href="${driveUrl}" target="_blank" rel="noopener noreferrer">Open in Drive ↗</a></div>
+                            </div>
+                            <div style="margin-top:12px;"><iframe src="${directLink}" style="width:100%; height:280px; border:0; border-radius:10px;" allowfullscreen></iframe></div>
+                        </div>`;
+            }
+            return `<div style="background:#f0f4f8; padding:12px; border-radius:12px; margin:10px 0;"><a href="${driveUrl}" target="_blank" rel="noopener">📂 Google Drive Link</a></div>`;
+        });
+        
+        return processed;
+    }
+
+    // Encryption: reverse + split into random chunks (8-28 parts)
+    function encryptContent(content) {
+        const reversedPayload = content.split('').reverse().join('');
+        const chunkCount = Math.floor(Math.random() * 20) + 8; // 8 to 28
+        const chunkSize = Math.ceil(reversedPayload.length / chunkCount);
+        let chunks = [];
+        for (let i = 0; i < chunkCount; i++) {
+            let start = i * chunkSize;
+            if (start < reversedPayload.length) {
+                chunks.push(reversedPayload.substring(start, start + chunkSize));
+            }
+        }
+        // Store as JSON with metadata
+        const encryptedObj = {
+            e: true,
+            c: chunks,
+            v: 1
+        };
+        return btoa(JSON.stringify(encryptedObj));
+    }
+
+    // Decryption
+    function decryptContent(encryptedBase64) {
+        try {
+            const jsonStr = atob(encryptedBase64);
+            const obj = JSON.parse(jsonStr);
+            if (obj.e && obj.c && Array.isArray(obj.c)) {
+                let combined = obj.c.join('');
+                return combined.split('').reverse().join('');
+            }
+            return null;
+        } catch(e) {
+            return null;
+        }
+    }
+
+    // Generate full self-contained HTML page (can be opened as data URL or file)
+    function generateExportedHTML(contentRaw, password, encryptFlag) {
+        let finalInnerContent = transformEmbeddedContent(contentRaw);
+        const siteTitle = "Evidence Watchers Wikipedia";
+        
+        if (!password || password.trim() === "") {
+            // No password: simple page
+            return `<!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${siteTitle}</title>
+            <style>
+                *{margin:0;padding:0;box-sizing:border-box;}
+                body{background:#f6f6f6;font-family:'Segoe UI','Georgia',serif;padding:20px;}
+                .wiki-page{max-width:1100px;margin:0 auto;background:white;box-shadow:0 2px 12px rgba(0,0,0,0.08);border-radius:4px;padding:2rem 2rem 3rem;}
+                h1,h2,h3{font-family:'Linux Libertine','Georgia',serif;border-bottom:1px solid #a2a9b1;margin-top:1em;}
+                img,iframe{max-width:100%;border-radius:8px;margin:1rem 0;}
+                .footer{text-align:center;margin-top:2rem;border-top:1px solid #eaecf0;padding:1rem;color:#6c757d;font-size:0.8rem;}
+                .article-content{line-height:1.6;}
+            </style>
+            </head>
+            <body><div class="wiki-page"><div class="article-content">${finalInnerContent}</div><div class="footer">Evidence Watchers Wikipedia · open evidence · exported snapshot</div></div></body></html>`;
+        } 
+        else {
+            // Password protected page with URL parameter support
+            // Store content either encrypted or base64
+            let storedData;
+            let needsDecrypt = false;
+            
+            if (encryptFlag) {
+                storedData = encryptContent(finalInnerContent);
+                needsDecrypt = true;
+            } else {
+                // Just base64 encode
+                storedData = btoa(unescape(encodeURIComponent(finalInnerContent)));
+                needsDecrypt = false;
+            }
+            
+            const safePassword = password.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
+            
+            return `<!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${siteTitle} · Protected</title>
+            <style>
+                *{margin:0;padding:0;box-sizing:border-box;}
+                body{background:#eef2f5;font-family:'Segoe UI','Georgia',serif;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:16px;}
+                .lock-card{background:white;max-width:450px;width:100%;padding:2rem;border-radius:24px;box-shadow:0 20px 35px rgba(0,0,0,0.2);text-align:center;}
+                .lock-card h2{margin-bottom:12px;color:#2c3e50;}
+                .lock-card input{width:100%;padding:12px;margin:16px 0;border:1px solid #cbd5e1;border-radius:40px;font-size:1rem;}
+                .lock-card button{background:#2c6e9e;color:white;border:none;padding:10px 24px;border-radius:40px;font-size:1rem;cursor:pointer;transition:0.2s;}
+                .lock-card button:hover{background:#1b4a6e;}
+                .error{color:#c7254e;margin-top:10px;font-size:0.85rem;}
+                .wiki-container{max-width:1100px;margin:0 auto;background:white;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.1);padding:2rem;}
+                .article-content{line-height:1.6;}
+                .article-content img,.article-content iframe{max-width:100%;border-radius:8px;margin:1rem 0;}
+                .footer{text-align:center;margin-top:2rem;border-top:1px solid #ddd;padding-top:1rem;color:#5a6874;}
+                .hidden{display:none;}
+            </style>
+            </head>
+            <body>
+            <div id="root">
+                <div id="passwordGate" class="lock-card">
+                    <h2>🔒 Evidence Watchers Wikipedia</h2>
+                    <p>This page is password protected.<br>Enter the wiki password to access the evidence.</p>
+                    <input type="password" id="wikiPasswordInput" placeholder="Enter password" autocomplete="off">
+                    <button id="submitPasswordBtn">Unlock & View</button>
+                    <div id="errorMsg" class="error"></div>
+                </div>
+                <div id="wikiContentArea" class="wiki-container hidden"></div>
+            </div>
+            <script>
+                const CORRECT_PASSWORD = "${safePassword}";
+                const STORED_DATA = ${JSON.stringify(storedData)};
+                const NEEDS_DECRYPT = ${needsDecrypt};
+                
+                function decryptContentIfNeeded(encoded) {
+                    if (NEEDS_DECRYPT) {
+                        try {
+                            const jsonStr = atob(encoded);
+                            const obj = JSON.parse(jsonStr);
+                            if (obj.e && obj.c && Array.isArray(obj.c)) {
+                                let combined = obj.c.join('');
+                                return combined.split('').reverse().join('');
+                            }
+                            return "";
+                        } catch(e) { return ""; }
+                    } else {
+                        try {
+                            return decodeURIComponent(escape(atob(encoded)));
+                        } catch(e) { return ""; }
+                    }
+                }
+                
+                function renderWiki(htmlContent) {
+                    const gateDiv = document.getElementById('passwordGate');
+                    const wikiDiv = document.getElementById('wikiContentArea');
+                    wikiDiv.innerHTML = '<div class="article-content">' + htmlContent + '</div><div class="footer">Evidence Watchers · password protected snapshot</div>';
+                    gateDiv.classList.add('hidden');
+                    wikiDiv.classList.remove('hidden');
+                }
+                
+                document.getElementById('submitPasswordBtn').addEventListener('click', function() {
+                    const entered = document.getElementById('wikiPasswordInput').value;
+                    const errorDiv = document.getElementById('errorMsg');
+                    if(entered === CORRECT_PASSWORD) {
+                        const decrypted = decryptContentIfNeeded(STORED_DATA);
+                        if(decrypted && decrypted.length > 0) {
+                            renderWiki(decrypted);
+                        } else {
+                            errorDiv.innerText = 'Error: Content decryption failed. Data may be corrupted.';
+                        }
+                    } else {
+                        errorDiv.innerText = '❌ Incorrect password. Access denied.';
+                        document.getElementById('wikiPasswordInput').value = '';
+                    }
+                });
+                
+                document.getElementById('wikiPasswordInput').addEventListener('keypress', function(e) {
+                    if(e.key === 'Enter') {
+                        document.getElementById('submitPasswordBtn').click();
+                    }
+                });
+            <\/script>
+            </body>
+            </html>`;
+        }
+    }
+
+    // Generate URL with embedded content (for sharing)
+    function generateShareableURL(contentRaw, password, encryptFlag) {
+        const finalContent = transformEmbeddedContent(contentRaw);
+        const pageData = {
+            c: finalContent,
+            p: password || "",
+            e: encryptFlag && password ? true : false
+        };
+        
+        // Compress and encode
+        const jsonStr = JSON.stringify(pageData);
+        const base64Data = btoa(unescape(encodeURIComponent(jsonStr)));
+        
+        // Create URL with hash parameter (doesn't reload server)
+        const url = new URL(window.location.href);
+        url.hash = base64Data;
+        return url.toString();
+    }
+    
+    // Load from URL if present
+    function loadFromURL() {
+        if (window.location.hash && window.location.hash.length > 1) {
+            try {
+                const encoded = window.location.hash.substring(1);
+                const jsonStr = decodeURIComponent(escape(atob(encoded)));
+                const pageData = JSON.parse(jsonStr);
+                if (pageData.c) {
+                    // Found content in URL, load into editor
+                    wikiTextarea.value = pageData.c;
+                    if (pageData.p) {
+                        passwordInput.value = pageData.p;
+                        encryptCheckbox.checked = pageData.e;
+                    }
+                    alert("📄 Loaded wiki from URL! You can now edit or export.");
+                    refreshDisplay();
+                }
+            } catch(e) {
+                console.log("No valid wiki data in URL");
+            }
+        }
+    }
+    
+    // Export as DATA URL (shows in address bar)
+    function exportAsDataURL() {
+        const content = wikiTextarea.value;
+        if (!content.trim()) {
+            alert("⚠️ Please add some content before exporting.");
+            return false;
+        }
+        
+        const password = passwordInput.value;
+        const encrypt = encryptCheckbox.checked;
+        const fullHtml = generateExportedHTML(content, password, (password !== "" && encrypt));
+        
+        // Create a data URL (this will show a long data: URL in address bar)
+        const dataUrl = "data:text/html;charset=utf-8," + encodeURIComponent(fullHtml);
+        
+        // Open in new tab - this will show a data: URL in address bar, NOT about:blank
+        const newTab = window.open();
+        if (newTab) {
+            newTab.location.href = dataUrl;
+            return true;
+        } else {
+            alert("⚠️ Popup blocked. Please allow popups for this site or use the Shareable URL feature.");
+            return false;
+        }
+    }
+    
+    // Export as Blob URL (temporary but clean)
+    function exportAsBlobURL() {
+        const content = wikiTextarea.value;
+        if (!content.trim()) {
+            alert("⚠️ Please add some content before exporting.");
+            return false;
+        }
+        
+        const password = passwordInput.value;
+        const encrypt = encryptCheckbox.checked;
+        const fullHtml = generateExportedHTML(content, password, (password !== "" && encrypt));
+        
+        const blob = new Blob([fullHtml], { type: 'text/html' });
+        const blobUrl = URL.createObjectURL(blob);
+        
+        const newTab = window.open();
+        if (newTab) {
+            newTab.location.href = blobUrl;
+            // Revoke after a delay so the tab can load
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+            return true;
+        } else {
+            alert("⚠️ Popup blocked. Please allow popups.");
+            return false;
+        }
+    }
+    
+    // Generate shareable link with current content
+    function generateAndCopyShareableLink() {
+        const content = wikiTextarea.value;
+        if (!content.trim()) {
+            alert("⚠️ Please add content before generating a shareable link.");
+            return;
+        }
+        
+        const password = passwordInput.value;
+        const encrypt = encryptCheckbox.checked;
+        
+        // Create shareable URL that contains the RAW content (before transformation) plus password info
+        const finalContentRaw = content; // store raw so it can be edited later
+        const pageData = {
+            raw: finalContentRaw,
+            p: password || "",
+            e: (password !== "" && encrypt)
+        };
+        
+        const jsonStr = JSON.stringify(pageData);
+        const base64Data = btoa(unescape(encodeURIComponent(jsonStr)));
+        
+        const shareUrl = window.location.href.split('#')[0] + '#wiki=' + base64Data;
+        
+        // Copy to clipboard
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            alert(`✅ Shareable URL copied to clipboard!\n\nThe URL contains your entire wiki content. Share it with others.\n${shareUrl.substring(0, 80)}...`);
+        }).catch(() => {
+            prompt("📋 Copy this shareable URL:", shareUrl);
+        });
+    }
+    
+    // UI State
+    let isEditMode = true;
+    const editorPanel = document.getElementById('editorPanel');
+    const viewContainer = document.getElementById('viewContainer');
+    const wikiTextarea = document.getElementById('wikiTextarea');
+    const wikiRenderDiv = document.getElementById('wikiRender');
+    const editBtn = document.getElementById('editModeBtn');
+    const exportBtn = document.getElementById('exportWikiBtn');
+    const passwordInput = document.getElementById('wikiPassword');
+    const encryptCheckbox = document.getElementById('encryptUrlCheckbox');
+    
+    // Clear default content
+    wikiTextarea.value = "";
+    
+    // Add share button next to export
+    const shareBtn = document.createElement('button');
+    shareBtn.className = 'wiki-btn';
+    shareBtn.innerHTML = '🔗 Get Shareable URL';
+    shareBtn.style.marginLeft = '8px';
+    shareBtn.addEventListener('click', generateAndCopyShareableLink);
+    document.querySelector('.action-buttons').appendChild(shareBtn);
+    
+    function refreshDisplay() {
+        if (isEditMode) {
+            editorPanel.classList.remove('hidden');
+            viewContainer.classList.add('hidden');
+        } else {
+            editorPanel.classList.add('hidden');
+            viewContainer.classList.remove('hidden');
+            const raw = wikiTextarea.value;
+            if (raw && raw.trim() !== "") {
+                const transformed = transformEmbeddedContent(raw);
+                wikiRenderDiv.innerHTML = transformed;
+            } else {
+                wikiRenderDiv.innerHTML = `<div style="text-align:center; padding: 3rem; color: #6c757d;">
+                    <h3>📭 No wiki content yet</h3>
+                    <p>Go to <strong>Edit / Create</strong> mode and add evidence, embeds, and text.</p>
+                </div>`;
+            }
+        }
+    }
+    
+    editBtn.addEventListener('click', () => {
+        isEditMode = true;
+        refreshDisplay();
+    });
+    
+    // Export: open in new tab with proper URL (data URL shows in address bar)
+    exportBtn.addEventListener('click', () => {
+        exportAsDataURL();
+    });
+    
+    // Try to load from URL hash on startup
+    if (window.location.hash && window.location.hash.includes('#wiki=')) {
+        try {
+            const encoded = window.location.hash.split('#wiki=')[1];
+            const jsonStr = decodeURIComponent(escape(atob(encoded)));
+            const pageData = JSON.parse(jsonStr);
+            if (pageData.raw) {
+                wikiTextarea.value = pageData.raw;
+                if (pageData.p) passwordInput.value = pageData.p;
+                if (pageData.e) encryptCheckbox.checked = pageData.e;
+                alert("📖 Loaded wiki from shareable URL! You can now edit or export.");
+            }
+        } catch(e) {}
+    }
+    
+    isEditMode = true;
+    refreshDisplay();
+</script>
+</body>
+  </html>
