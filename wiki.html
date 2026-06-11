@@ -1,263 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evidence Watchers Wikipedia</title>
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box;}
-        body{background:#f6f6f6;font-family:'Segoe UI','Georgia',serif;color:#202122;line-height:1.5;}
-        .wiki-container{max-width:1100px;margin:0 auto;background:white;box-shadow:0 1px 4px rgba(0,0,0,0.08);min-height:100vh;}
-        .wiki-header{background:#fff;border-bottom:1px solid #a7d7f9;padding:1.2rem 2rem;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:1rem;}
-        .site-title{font-size:1.8rem;font-family:'Linux Libertine','Georgia',serif;}.site-title span{font-weight:bold;border-bottom:2px solid #3366bb;}
-        .wiki-btn{background:#f8f9fa;border:1px solid #a2a9b1;border-radius:2px;padding:6px 12px;font-size:0.9rem;cursor:pointer;font-family:inherit;}
-        .wiki-btn-primary{background:#eaf3ff;border-color:#3366bb;color:#0645ad;}
-        .wiki-btn-primary:hover{background:#d9e8ff;}
-        .editor-panel{background:#fef6e7;border-bottom:1px solid #ffdfb3;padding:1.5rem 2rem;}
-        .editor-title{font-weight:500;margin-bottom:12px;font-size:1.2rem;color:#2c3e50;}
-        textarea{width:100%;min-height:320px;font-family:'Courier New',monospace;font-size:14px;padding:16px;border:1px solid #c8ccd1;border-radius:4px;background:white;resize:vertical;line-height:1.45;}
-        textarea:focus{outline:none;border-color:#3366bb;box-shadow:0 0 0 2px rgba(51,102,187,0.2);}
-        .embed-helper{margin-top:12px;font-size:0.85rem;color:#4d5a6e;background:#e8f0fe;padding:12px;border-radius:6px;}
-        .wiki-name-section{margin-top:14px;display:flex;flex-direction:column;gap:6px;}
-        .wiki-name-section label{font-weight:500;font-size:0.9rem;color:#2c3e50;}
-        .wiki-name-input{width:100%;max-width:400px;padding:8px 12px;border:1px solid #c8ccd1;border-radius:4px;font-size:0.95rem;font-family:inherit;}
-        .wiki-name-input:focus{outline:none;border-color:#3366bb;}
-        .password-section{margin-top:18px;display:flex;gap:20px;flex-wrap:wrap;align-items:center;border-top:1px dashed #ddd;padding-top:18px;}
-        .pass-input-group{display:flex;align-items:center;gap:8px;}
-        .pass-input-group label{font-weight:500;}
-        input[type="password"]{padding:6px 12px;border:1px solid #c8ccd1;border-radius:3px;}
-        .checkbox-label{display:flex;align-items:center;gap:6px;cursor:pointer;}
-        .warning{color:#bc6c25;font-size:0.8rem;}
-        .view-mode{padding:2rem 2rem 3rem 2rem;background:white;}
-        .article-content{font-size:1.05rem;overflow-wrap:break-word;line-height:1.6;}
-        .article-content h1,.article-content h2,.article-content h3{font-family:'Linux Libertine','Georgia',serif;border-bottom:1px solid #a2a9b1;margin-top:1.2em;margin-bottom:0.5em;}
-        .article-content iframe{max-width:100%;margin:1rem 0;border-radius:8px;width:100%;min-height:315px;border:none;}
-        .article-content img{max-width:100%;border-radius:8px;margin:1rem 0;max-height:500px;object-fit:contain;}
-        .drive-preview-card{border:1px solid #dadde1;background:#fafbfd;padding:16px;border-radius:14px;margin:16px 0;}
-        .footer-note{text-align:center;font-size:0.75rem;border-top:1px solid #eaecf0;padding:1rem;color:#6c757d;}
-        .hidden{display:none;}
-        .password-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:1000;}
-        .password-box{background:white;padding:2rem;border-radius:16px;max-width:400px;width:90%;text-align:center;}
-        .password-box input{width:100%;padding:12px;margin:16px 0;border:1px solid #ccc;border-radius:8px;font-size:1rem;}
-        .password-box button{background:#3366cc;color:white;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:1rem;}
-        .error-msg{color:#d33;margin-top:10px;}
-        .readonly-badge{background:#eaf3ff;padding:4px 12px;border-radius:20px;font-size:0.75rem;color:#0645ad;margin-left:12px;}
-        .action-buttons{display:flex;gap:12px;}
-    </style>
+    <title>Wikipad</title>
 </head>
 <body>
-<div class="wiki-container">
-    <div class="wiki-header">
-        <div class="site-title">📖 <span id="dynamicSiteTitle">Evidence Watchers Wikipedia</span></div>
-        <div class="action-buttons" id="actionButtons">
-            <button class="wiki-btn" id="editModeBtn">✏️ Edit / Create</button>
-            <button class="wiki-btn wiki-btn-primary" id="exportWikiBtn">🌍 Export & View Live</button>
-        </div>
-    </div>
-    <div id="editorPanel" class="editor-panel">
-        <div class="editor-title">📝 Full Wiki Content Editor (HTML + Smart Embeds)</div>
-        <textarea id="wikiTextarea" placeholder="Text here"></textarea>
-        <div class="embed-helper">🎯 Smart Embed: YouTube URLs → embedded player | Image URLs → &lt;img&gt; | Google Drive folders/files → rich preview | Raw HTML preserved</div>
-        
-        <div class="wiki-name-section">
-            <label for="wikiNameInput">✍️ Edit Wikipedia Name:</label>
-            <input type="text" id="wikiNameInput" class="wiki-name-input" value="Evidence Watchers Wikipedia">
-        </div>
-
-        <div class="password-section">
-            <div class="pass-input-group"><label>🔒 Wiki Password:</label><input type="password" id="wikiPassword" placeholder="leave empty = no password"></div>
-            <label class="checkbox-label"><input type="checkbox" id="encryptUrlCheckbox"> ✨ Encrypt content in URL</label>
-            <span class="warning">⚠️ If password set, viewers must enter it first.</span>
-        </div>
-    </div>
-    <div id="viewContainer" class="view-mode">
-        <div id="wikiRender" class="article-content"><div style="text-align:center;padding:3rem;"><h2>Evidence Watchers Wikipedia</h2><p>Click <strong>Edit / Create</strong> to build your wiki.<br>Embed videos, images, Google Drive, HTML. Then click <strong>Export & View Live</strong>.</p></div></div>
-        <div class="footer-note" id="footerNote">Evidence Wiki</div>
-    </div>
-</div>
 <script>
-(function(){
-    let titleEl = document.getElementById('dynamicSiteTitle');
-    let nameInput = document.getElementById('wikiNameInput');
+    /* ADVANCED OBFUSCATION: 1-Click Multi-Stage Split + Reversed UTF-8 Payload */
+    document.open();
+    (function(){
+    const __lyuv98 = "chcgq2i7";
+    const __zn0tjr = "v621r8ku";
+    let _cr0qrrs = "K4DbtRHavwjC+kHZvJ2L8ogP0BXayN2cvwjC7kCKp0nC9BCIgAiC7cSZu9mbnASPgkXYsB3cpRmLlxWe0NnLz5GdC52bpR3YhBCIgACIgACIKsTKn4WZkRWaodCKlZ3btVmcuQ3cpx0czFGbj5icl5WahRnbvN0dllmdgACIgACIgAiC7kyJuVGZklGangCZkFmL0NXaMN3chx2YuwWZuFGUy9GdpRWZgACIgACIgAiC7U2csFmZg0DI0lGZFNXagACIgACIgAiC7BSZzxWZg0HIgACIKsTKokUVoNXZyZWZyBCIgACIgACIKsTZ1JHdg0DI0lGZFNXagACIgACIgAiC7lCZlRncvBHeFNXahgiZpBCIgAiC7kCKkVGdy9Gc4VEZh9Gbg0DIkVGdy9Gc4V0cpBCdlxGIgACIKsTK0J3bwhXRvRGIscyajlGbjdCKyVmblR3cpxEduVmdFRGZh5ib0JEdy9Gc4VGIgACIKsTK9BCIgAiC7kSZtFmboRXYw5ibvlGdhN2bs5ydvRmbpdHIsIiIgwSf7hSZ0FGdTh2c1BnL5J3b0NXao5ydvRmbpdHIpg2YyFWZz5ibvlGdhN2bs5ydvRmbpdHKmlGIgACIgACIgowOpgSSVh2clJnZlJHIgACIgACIgowOlVnc0BSPgQXakV0cpBCIgACIgACIKsXKo42bpR3YuVnZgwyJrNWasN2JoIXZuVGdzlGT05WZ2VEZkFmLuRnQ0lGZlBCIgAiC9BCIgAiC9BCIgACIgACIKsTK3FmcoQnblRnbvNUby9mZz5WYyRHI9ACTNRFSyVmbulmLyVGZuVmUptWa3BSKpgSbpJHducXYyBiJmAydhJHKmlGIgACIgACIgACIgAiC7UWdsFmduEWZyFGd4VGVptWa3BSPgcXYyBCdlxGIgACIgACIgACIgAiC7cCelxmZnASPgkXYsB3cpRmLlxWe0NnLz5GdC52bpR3YhBCIgACIgACIgACIgowOpciblRGZph2JoUmdv1WZy5CdzlGTzNXYsNmLyVmbpFGdu92Q3VWa2BCIgACIgACIgACIgowOpciblRGZph2JoQGZh5CdzlGTzNXYsNmLsVmbhBlcvRXakVGIgACIgACIgACIgAiC7BSZzxWZg0HIgACIgACIgowOnk2apdFIlNmblRWa2V0Jg0DIM1EVIJXZu5WaukyJlR3bOJXZ092bmdCKklUeCRnbl1WZsVEdldmL05WZtV3YvRGIgACIgACIgACIgAiC7ISYpRWZwl2apdFIzJXZoNGdhdFIlNmblRWa2VkIgwHfgUWdsFmduQXdw5WSl1WYuBSPgQnblRnbvNEd4VGduwWRlxGdpRHIgACIgACIgACIgAiC7kCKlZ3btVmcuU2ZkFmYgkSZnRWYihiZpBCIgACIgACIgACIgowOpcSZnRWYi1Ses52bkFWZy5yJoI3b0NWZsV2U5JXZ1FnL05WZtV3YvRGI9ASZnRWYiBCdlxGIgACIgACIgACIgAiC7cCelxmZnASPgkXYsB3cpRmLlxWe0NnLz5GdC52bpR3YhBCIgACIgACIgACIgowOpciblRGZph2JoQGZh5CdzlGTzNXYsNmLyVmbpFGdu92Q3VWa2BCIgACIgACIgACIgowOpciblRGZph2JoUmdv1WZy5Cd";
+    // tracking system check: 0.07471266706374813
+    let _cnoxisd = "zlGTzNXYsNmLsVmbhBlcvRXakVGIgACIgACIgACIgAiC7lCdpRWRzlGKmlGIgACIgACIgowepgSSVh2clJnZlJHIu9Wa0Nmb1ZGIgACIKsjIiASPgUWdsFmduEWZyFGd4VGVptWa3BCIgAiC7kyJz52b0RXdC52bpR3YhdCKklUeCRnbl1WZsVEdldmL05WZtV3YvRGI9AycuRnQu9Wa0NWYgQXZsBCIgAiC7kyJuRnQptWaXRncvBHeldCKklUeCRnbl1WZsVEdldmL05WZtV3YvRGI9Aib0JEdy9Gc4VGI0VGbgACIgowOpcib0JUZk9WT0lGZldCKklUeCRnbl1WZsVEdldmL05WZtV3YvRGI9Aib0JEdpRWZgQXZsBCIgAiC7kyJyVGZuVmUptWa3dCKklUeCRnbl1WZsVEdldmL05WZtV3YvRGI9AiclRmblJVarl2dgQXZsBCIgAiC7kyJhVmchRHelRVarl2dngCZJlnQ05WZtVGbFRXZn5CduVWb1N2bkBSPgEWZyFGd4VGVptWa3BCdlxGIgACIKsTKnIXZulWY052bDdXZpZ3JoQWS5JEduVWblxWR0V2ZuQnbl1Wdj9GZg0DIyVmbpFGdu92Q3VWa2BCdlxGIgACIKsTKnwWZuFGUy9GdpRWZngCZJlnQ05WZtVGbFRXZn5CduVWb1N2bkBSPgwWZuFGUy9GdpRWZgQXZsBCIgAiC7UWdyRHI9ACdpRWRzlGI0VGbgACIgoQfgACIgowOp0HI7kCKrN2bs5WdgkyJyVGduV0J90TP5V2auUGKmlGI7lSZo42bpR3YuVnZgwyJzNXZyBXelt2JoIXZuVGdzlGT05WZ2VEZkFmLpcCZy92dzNXYQVGdhd2JoQWS5JEduVWblxWR0V2ZuQnbl1Wdj9GZgACIgACIgAiC7kyaj9GbuVHIscyajlGbjdCKyVmblR3cpxEduVmdFRGZh5SKn42b0RXdCt2Yvxmb1dCKklUeCRnbl1WZsVEdldmL05WZtV3YvRGIgACIgACIgowO9BCIgACIgACIK0HIgACIgACIgACIgAiC7kCKzV3YvZmLpcCZy92dzNXYQVGdhd2JoQWS5JEduVWblxWR0V2ZuQnbl1Wdj9GZgACIgACIgACIgACIgACIgowOncCI9ASZ1xWY25SKnQmcvd3czFGUlRXYndCKklUeCRnbl1WZsVEdldmL05WZtV3YvRGIgACIgACIgACIgACIgACIKszJuQmcvd3czFGcgQ3YlJncvNmbJBCjdK+Jg0DI05WZ052bDRHelRnL2lGRyJXZgACIgACIgACIgACIgACIgowegU2csVGI9BCIgACIgACIgACIgowOpgSZ29WblJnL5FGbyVmdvBCIgACIgACIgACIgACIgAiC7wWYulmZg0DIM1EVIJXZu5WaukyJyVGZuVmUptWa3dCKklUeCRnbl1WZsVEdldmL05WZtV3YvRGIgACIgACIgACIgACIgACIK0HIgACIgACIgACIgACIgACIK0HI74mc1RXZyByOn4CZlxWahZGIlR2bjVGRnASPgQnblRnbvNEd4VGduYXaEJnclByepUGKoNGdhNWfgsTKpkCduVGdu92Qj5WZoI2b0FGKlBXYjNXZoQnbl52bw12bDlkUVVGZvNWZkBSP";
+    function _fn1hgosd() { return 44; }
+    let _c0n74zt = "gwWYulmZgsXeyRHIgACIgACIgACIgACIgACIgACIgowegU2csVGI9BCIgACIgACIgACIgACIgAiC9ByOuJXd0VmcgszJuQWZslWYmBibvlGdwlncjVGRnASPgQnblRnbvNEd4VGduYXaEJnclByepwWYulmZhgiZpBCIgACIgACIgACIgACIgACIgACIKsTK05WZ052bDNmblhCduVGdu92Q0BXeyNWZkBSPgwWYulmZgACIgACIgACIgACIgACIgACIgAiC7lCZlRHc5J3YuV0cphiZpBCIgACIgACIgACIgACIgAiC7QnblRnbvN0YuVGI9ACbh5WamBCdlxGIgACIgACIgACIgACIgACIKsXKkdHU0NWZyJ3bjBSP90DIkVmclRnblhiZpBCIgACIgACIgACIgowOpcicvJncFVGdhd2JoQWS5JEduVWblxWR0V2ZuQnbl1Wdj9GZg0DI2lGRyJXZgQXZsBCIgACIgACIgACIgowOlVHbhZnLpcCZy92dzNXYQVGdhd2JoQWS5JEduVWblxWR0V2ZuQnbl1Wdj9GZg0DIkVmclRnblBCdlxGIgACIgACIgACIgAiC7lCKu9Wa0Nmb1ZGI9Ayaj9GbuVHI0VGbgACIgACIgAiC7kSehxmclZ3boQGbph2Qk5WZwBXYukHZvJmL05WZtV3YvRGIgACIgACIgowOn4jdpR2L84jdpR2L84jInNXbtI3byJXZi0zczFGbjBiIy9mcyVUZ0F2Zi0DZpBidpRGP+42b0RXdi9CPrN2bs5WV+IibvRHd1J0aj9GbuVnI9QWag42b0RXdixjPiQmcvd3czFGcgIXZ05WRi0jclRGbvhWZjFGbwBiIkJ3b3N3chBVZ0F2Zi0DZpBiIkJ3b3N3chBnI9UGc5RHI0VHculGP+A3L84CZlR3YlR3byBHIkJ3b3N3chBHIzlGIptWa3BycphGV+AHP+IDavwDZlJXa1FXZSBCZy92dzNXYQBikU+J8+IDa84jI49mYtQmcvd3czFGci0zczFGbjBidpRGPnASPgwUTUhkcl5mbp5SehxmclZ3bgACIgACIgAiC7cSehxmclZ3btQmcvd3czFGcnASPgUWbh50czFGbj5SehxmclZ3bgACIgACIgAiC7kyJ2lGZngCduVWblxWRlRXYlJ3YuQnbl1Wdj9GZg0DI5FGbyVmdvBCdlxGIgACIgACIgowepQWZ0BXeyNmbFNXagwCZ3BFdjVmcy92YgwCduVGdu92Qj5WZoUGdhd0dvh2cg42bpR3YuVnZgACIgoQfgACIgoQf7U2csFmZg4mc1RXZytXKlhCajRXYj1HIgACIgACIgoQfgACIgACIgACIgACIKsTZ1JHdg4mc1RXZyBCIgACIgACIgACIgACIgAiC7kCZlRHc5J3YuV0cpBCLw5SY0FGZgwCduVGdu92YoUGdhd0dvh2cgACIgACIgACIgACIgACIgowegU2csVGI9BCIgACIgACIgACIgowOlVnc0BibyVHdlJHIgACIgACIgACIgACIgACIKsTKpkCduVGdu92YoI2b0FGKlBXYjNXZoQnbl52bw12bDlkUVVGZvNWZkBSPgwUTUhkcl5mbp5SKnIXZk5WZSl2apd3JoQWS5JEduVWblxWR0V2ZuQnbl1Wdj9GZ";
+    let _ccornnw = "gACIgACIgACIgACIgACIgowepQmcvd3czFGUzFGahgiZpBCIgACIgACIgACIgowOnk2apdFIlNmblRWa2V0Jg0DIM1EVIJXZu5WaukyJlR3bOJXZ092bmdCKklUeCRnbl1WZsVEdldmL05WZtV3YvRGIgACIgACIgACIgAiC9BCIgACIgACIgACIgowOpU2ZkFmYoQGbph2Qk5WZwBXYuIXZkFWZoBCIgACIgACIgACIgACIgAiC7cyVFlkVgkFTO9ULEFURSBilT+J8nASPgQnblRnbvNEd4VGduU2ZkFmYgACIgACIgACIgACIgACIgowOnU2ZkFmYtkHbu9GZhVmcnASPgUWbh50czFGbj5SZnRWYiBCIgACIgACIgACIgACIgAiC7kyJuFGczdCK05WZtVGbFVGdhVmcj5CduVWb1N2bkBSPgU2ZkFmYgQXZsBCIgACIgACIgACIgACIgAiC7lSKnU2ZkFmYtkHbu9GZhVmcucCKy9GdjVGblNVeyVWdx5iclRWYlhWIoYWagACIgACIgACIgACIKsTKnIXZkFWZo1Sarl2ducCKy9GdjVGblNVeyVWdx5CduVWb1N2bkBSPgIXZkFWZoBCdlxGIgACIgACIgACIgAiC7cSZu9mbnASPgkXYsB3cpRmLlxWe0NnLpcycu9Gd0VnQu9Wa0NWYngCZJlnQ05WZtVGbFRXZn5CduVWb1N2bkBCIgACIgACIgACIgowOpciblRGZph2JoUmdv1WZy5CdzlGTzNXYsNmLpcicl5WahRnbvN0dllmdngCZJlnQ05WZtVGbFRXZn5CduVWb1N2bkBCIgACIgACIgACIgowOpciblRGZph2JoQGZh5CdzlGTzNXYsNmLpcCbl5WYQJ3b0lGZldCKklUeCRnbl1WZsVEdldmL05WZtV3YvRGIgACIgACIgACIgAiC9BCIgACIgACIgACIgowO05SY0FGZg0DI05WZ052bDRHelRnLsVUZsRXa0BCIgACIgACIgACIgACIgAiC7BSK05SY0FGZoYWagACIgACIgACIgACIKsTZ1JHdg0TP9ASZuEGdhRGI9ACZlRHc5J3YuV0cpBCdlxGIgACIgACIgACIgAiC7IiIg0TPhACcuEGdhRGImYCIw5SY0FGZg0DIkJ3b3N3chB1chhGI0VGbgACIgACIgACIgACIKszYuEGdhRGI9ACduVGdu92YgQXZsBCIgACIgACIgACIgowOpIHdT52bzpGKlNnchBnLO90UKBSPgEGdhRGI0VGbgACIgACIgACIgACIKsTKpkSY0FGRptWa3hiYvRXYoUGchN2clhCduVmbvBXbvNUSSVVZk92YlRGI9Aic0NlbvNnagQXZsBCIgACIgACIgACIgowe5JHdgACIgACIgAiC7U2csFmZg4mc1RXZyBSKhRXYEl2apdXIoYWagACIgACIgAiC7kyJptWa3dCK0V2ZuMXbhJXYwBSPgEGdhRUarl2dgQXZsBCIgACIgACIKsTKoNmchV2cu42bpRXYj9Gbuc3bk5Wa3hyctFmchBFajJXYlNFTSVFI3Vmbg0DIz1WYyFGcgQXZsBCIgACIgACIKsXKoQWZ0J3bwhXRkF2bsBibvlGdj5WdmBCIgAiC9BCIgAiC7wmcVdXZuBSPgYWZyhmL";
+    let _cmry0qi = "u9Wa0F2YvxmL39GZul2dgACIgACIgAiC7QWZk92YuVGIrAyJ9k2apd3PnAyKgUWbh5Ga0FGcu42bpRXYj9Gbuc3bk5Wa3ByKg4Wanlmcv5ibvlGdhN2bs5ydvRmbpdHI9ACbyV1dl5GI0VGbgACIgACIgAiC7kSKpIHdT52bzpGK05WZu9Gct92QJJVVlR2bj5WZoUGchN2cl5WdoE2b0JGI9ACZlR2bj5WZgQXZsBCIgACIgACIKsTKhRXYERncvBHelhSeml2Zulmc0NnLO90UKBSPgIHdT52bzpGI0VGbgACIgACIgAiC9BCIgACIgACIKsTKpkCZl1mcvZ2cuFmc0hCduVmbvBXbvNUSSVVZk92YuVGKlBXYjNXZuVHKh9GdiBSPgMmLhRXYERncvBHelBCIgACIgACIgACIgowegU2csVGI9BCIgACIgACIKsTKkVWby9mZz5WYyRHK05WZ052bDRHc5J3YuVGI9AyYuEGdhREdy9Gc4VGIgACIgACIgACIgAiC7lSZuEGdhREdy9Gc4VGKmlGIgACIgACIgowO9VGb0lGV05WZyJXdjpDdgwSZzxWYmpTZ1JHd/kCdwlncj5WZgYiJgQmcvd3czFGcooTZgwCbsVnbgwHfgQmcvd3czFGc6AHIsQWZtJ3bmNnbhJHd6M2eg0DIhRXYERncvBHelBCdlxGIgACIgACIgowOpQnblRnbvNGK05WZ052bD1mcvZ2cuFmc0BSPgQWZtJ3bmNnbhJHdgQXZsBCIgACIgACIKsjIhlGZlBXarl2VgMnclh2Y0F2VgU2YuVGZpZXRiACf8BSZ1xWY25Cd1BnbJVWbh5GI9ASZsRXaURnblJnc1NGI0VGbgACIgACIgAiC7QWZrNWZoNmLpcCevJ2ajVGaDxmcVRHc5J3YuV2JoQWS5JEduVWblxWR0V2ZuQnbl1Wdj9GZg0DI0BXeyNmblBCdlxGIgACIgACIgowOlVHbhZnLpcCZy92dzNXYQl2apd3JoQWS5JEduVWblxWR0V2ZuQnbl1Wdj9GZg0DIkJ3b3N3chBHI0VGbgACIgACIgAiC74mc1RXZyBSKpgSbpJHduQnblRnbvNWIoYWagACIgACIgAiC7UWdsFmdukyJhVmchRHelRVarl2dngCZJlnQ05WZtVGbFRXZn5CduVWb1N2bkBSPgQnblRnbvNGI0VGbgACIgACIgAiC7lCK0J3bwhXRvRGIu9Wa0Nmb1ZGIgACIK0HIgACIK03OsxWduBibyVHdlJ3epUGKoNGdhNWfgACIgACIgAiC7wGb15GIuJXd0VmcgACIgACIgACIgACIK0HIgACIgACIgACIgAiC7kyJngibp9maukCKlNnclZXZy5SKncCK0lGbwNnLkVmbpJWbvNGIuJXd0VmcgACIgACIgACIgACIgACIgowOpcyJo4WavpmLztmb1h2YuomYvBSPgQWZulmYt92YgQXZsBCIgACIgACIgACIgACIgAiC7lSKztmb1h2YuomYvhSehJncBNXaukXYyJXQgYiJgM3auVHaj5iai9GKmlGIgACIgACIgACIgAiC7kSKpkyYuVGKi9GdhhSZwF2YzVGK05WZu9Gct92QJJVVlR2bjVGZoU2cyFGcu40TTpEI9Aiai9GI0VGbgACIgACI";
+    /* gran3noeyi */
+    let _clxqv9p = "gACIgACIKsXeyRHIgACIgACIgowepMmblhCduVGdu92Q0BXeyNWZkBibvlGdj5WdmBCIgAiC9BCIgAiC7kSKpkSfztmb1h2Y6M3auVHajtHK5ZWan5WayR3cu40TTpEK05WZu9Gct92QJJVVlR2bj5WZoUGchN2cl5WdoE2b0JGIuJXd0VmcgACIgACIgAiC9BCIgACIgACIKsTKpUmepN1auVHajtCdyFGdzBCL0JXY0NHKn5WayR3ciV3cuYXZyhCazVHcuM3auVHajBSKoR3ZuVGbuYXZyxDdyFGdzhiZpBCIgACIgACIgACIgowOlpXaTtmb1h2YqkGI9ACdyFGdzBCdlxGIgACIgACIgACIgAiC7lyKrk2O05WdvN0auVHajxTa7ATPpBCdlxGKy9mZgACIgACIgAiC701Wg0DIztmb1h2YgQXZsBCIgACIgACIKsTK05WdvN0auVHajByLggGdn5WZs5idlJHKslWZj5Ca0FWTg0DIlpXaTtmb1h2YgQXZsBCIgACIgACIKsDOgsCIpAjMgoCIpgSbvRmbhJnLoRXYNhicv9Gbm5Ca0FWTg0DI05WdvN0auVHajBCdlxGIgACIgACIgowOpcyJo4WavpmLpgSZzJXZ2VmcukyJngCdpxGcz5yYg0DI2VmcgQXZsBCIgACIgACIKsXKjhCduVGdu92Q0BXeyNmblBibvlGdj5WdmBCIgAiC9BCIgAiC7kyJngibp9mauMXZulGTkV2czV2YvJHcg4mc1RXZyBCIgACIgACIKsTK9BCIgACIgACIKszJ+YXak9CPnAyKgUmbpxGIrAyJ+YXakxzJg4mc1RXZyBCIgACIgACIgACIgoAIgACIgACIgACIgAiC9BCIgACIgACIgACIgowOn4jdpR2L84jdpR2L8cXZpZXZyBHI05WZtV3YvREIOO5nw7jI7gjN1UTY0MiOy9GbvN2O4BHO6A3b01ibpdmch12OtVmc34CM6UmepNXL052bmJSPlxWe0NHI2lGZ84TZtFmcml2L84jblVmcjNHbsVnZ39GbsFGIisDewBTM6MXdpRWYy1iclRmcvJ2OwojclRmcvJ2O4BHMyMjO0h2ZpVGa7UCMwEjOoRHZpdnI9UGb5R3cgIydllmdlJHcvcyKklmZrcyLk9SZslmZv02bj5SZsd2bvdmLlZXayR2LvozcwRHdoJSPjJ3cgUWbhJnZpxjP2lGZvwjP2lGZvwjPh9CPXao4gUmdpJHRg4Wag4WZw9kPiIXZuVGcv9mbi0DblJHIismbhxmYfJSP0V2ZyFGdgIydllmdvcyKklmZrcyLk9SZslmZv02bj5SZsd2bvdmLlZXayR2LvozcwRHdoJSPmVmcoBSY84jcixjPn52byR3cvwTZslmRgUmdpJHRgUGbn92bH5zZu9mc0NHP+YXakxjPuFGcz9CPEO5nw7jI70WZyhjLxoTZ6l2ctQnbvZmI9UGb5R3cg4WYwNHP+IyO4BnMxoTbvRHdvJWLul2ZyFWb7IXZ05WZjpzctVGdp1ibnlGbhtDewJTM6AXYntDelxmZ6kXYsB3cpRmI9UGb5R3cgYXakxjPiQmchNWL3VWa2Vmcw1SZ2lmckJSPzNXYsNGI2lGZ8cCIuJXd0VmcgACIgACIgACIgACIgACIgowO";
+    let _cw6pd32 = "dNzWoNGdh1UZslmZgwHfg0lMbh2Y0FWTlxWamBSPgQWamBCdlxGIgACIgACIgACIgACIgACIKsXKoNGdh1UZslmZoYWagACIgACIgACIgACIKsTKp9SK/kiKTxlJ68DKpsSXt8VOtAjWtEketE2Wo0DZp9DXuVGcv9CXt92YuwVZsd2bvdmLcVmdpJHZvw1LcpzPzBHd0hGf/kiKTx1LcpzPokyKd1yX50CMa1SQ61SYbhyLcR2LcVGbpZ2Lc12bj5CXlx2Zv92ZuwVZ2lmck9CXvwlO/MHc0RHao8CKoNGdh1mLkVWbtlmc0BSPgg2Y0FWTlxWamBCdlxGIgACIgACIgACIgAiCgACIgACIgACIgACIK0HIgACIgACIgACIgAiC7ciP2lGZvwjP2lGZvwzdllmdlJHcgMHduVGdu92YgIXZkx2bGBijT+J8+IyO4YTN1EGNjojcvx2bjtDewhjOw9Gdt4WanJXYttTblJ3NuAjOlpXaz1Cdu9mZi0TZslHdzBidpRGP+UWbhJnZp9CP+4WZlJ3YzxGb1Z2dvxGbhBiI7UjZ1YWNmNiOk5WdvJ3ZrNWYitDewBTM6MXdpRWYy1iclRmcvJ2OwojclRmcvJ2O4BHM4IjO0h2ZpVGa7UCMwEjOoRHZpdnI9UGb5R3cgICdzlGbjcyKdJzWoNGdh1kclRGbvZ2Kn0DZp9zdllmdyVGZs9mZkVGZkVmYtV2Lt92YuUGbn92bn5SZ2lmck9yL6MHc0RHai0zYyNHIl1WYyZWa84jdpR2L84jdpR2L84TYvwjkGKOIlZXayREIulGIuVGcP5jIyVmblB3bv5mI9wWZyBiIr5WYsJ2Xi0DdldmchRHIicyKdFzWoNGdh1kclRGbvZ2KnISPmVmcoBSY84jcixjPn52byR3cvwjclRGbvZEIlZXayREIlx2Zv92R+cmbvJHdzxjP2lGZ84jbhB3cvwTgT+J8+IyOtVmcyoTZ6l2ctQnbvZmI9UGb5R3cg4WYwNHP+IyO4BnMxoTbvRHdvJWLul2ZyFWb7IXZ05WZjpzctVGdp1ibnlGbhtDewJTM6AXYntDelxmZ6kXYsB3cpRmI9UGb5R3cgYXakxjPiQmchNWL3VWa2Vmcw1SZ2lmckJSPzNXYsNGI2lGZ8cCIuJXd0VmcgACIgACIgACIgACIgACIgowepg2Y0FWTyVGZs9mZoYWagACIgACIgACIgACIKsTKp9SK/kiKTx1PcpzPokyKd1yX50CMa1SQ61SYbhSKvw1cyVGZs9mZ89CXzJXZkx2bm9CXlZXayRmO/gyLc12bj5CXlx2Zv92ZuwVZ2lmck9CXvwlO/MHc0RHao8CKoNGdh1mLkVWbtlmc0BSPgg2Y0FWTyVGZs9mZgQXZsBCIgACIgACIgACIgoAIgACIgACIgACIgAiC9BCIgACIgACIgACIgowOn4jI5pXYsJSPn5WakF2bsBiI7kSMuADLwwCMsADKhJ2ZyBCewZDI4BnMgAjO39GZhh2ctg3bitDMggHc2EjOul2ZyFWb7gHcwEjOzVXakFmctIXZkJ3bitTJwATM6gGdkl2dtgXYtJSPlxWe0NHIiU2YuVGZpZXZi0DdsFGIicyKkVWbtlmc0tyJi0zYyNHIn1Wa8cCIuJXd0VmcgACIgACIgACI";
+    typeof _unused1m55lv !== 'undefined' ? 0 : 1;
+    let _c52l6d5 = "gACIgACIgowepg2Y0FWTn1WaoYWagACIgACIgACIgACIKsTKp9CJp8TKq0FPzxlXb9DX68DKpAXbix3Z2NHfwJWZ3xnZpdGfn5Gc8dWZwpGfnBna68DKuw1KdlCK8MHXet1Lc9CX68zcwRHdohiXvgCajRXYt5CZl1WbpJHdg0DIoNGdh10ZtlGI0VGbgACIgACIgACIgACIKACIgACIgACIgACIgoQfgACIgACIgACIgACIKszJ+YXak9CP+UWbhJnZp9CP+4WZlJ3YzxGb1Z2dvxGbhBiIwISPyVGZy9mYl1WYyZGIicyKklmdrcyLkVmYtV2Lt92YuUmY1RXdvlnL3d3dv8iOzBHd0hmI9MmczBiI7UCMwEjO0h2ZpVGa7UCMwEjOoRHZpd3OwoDdmVGb7AjOw9Gd7UGd1x2bzJWY642bpRXaz9Gci0TZslHdzBSZtFmcmlGP+IyOuVGZklGa6c3bsZmclZ3b7gHcyEjOzVXakFmctIXZkJ3bitDM6QHanlWZotTJ1IjL2UjOt9Gd09mYtcmbpRGZhB3OlZXa0FGblJnOu9Wa0l2cvB3OwACewBjM64WanJXYtJSPlxWe0NHI2lGZ8cCIuJXd0VmcgACIgACIgACIgACIgACIgowOdJzWoNGdh1Ed5BCf8BSXxsFajRXYNRXeg0DIklmdgQXZsBCIgACIgACIgACIgACIgAiC7lCajRXYNRXeoYWagACIgACIgACIgACIKsTKp9SK/kiKTx1PcpzPokyKd1yX50CMa1SQ61SYbhyLcVmYuwVd0V3b59TKuw1d3dnO/gyLc9CX68zcwRHdox3PpoyUcZiO/gSKr0VLflTLwoVLBpXLhtFK9Y3Pch2Y0F2dvwVbvNmLcVmY1RXdvl3Pp4CXtxnLcd3d3pzPo8CXvwlO/MHc0RHa68DKvgCajRXYt5CZl1WbpJHdg0DIoNGdh1Ed5BCdlxGIgACIgACIgACIgAiCgACIgACIgACIgACIKszJ+InY8cCIuJXd0VmcgkCZl1WbpJHdhgiZpBCIgACIgACIgACIgowOpgSbpJHduUmbpxGI9ACZl1WbpJHdgQXZsBCIgACIgACIgACIgowepUmbpxGKu9Wa0Nmb1ZGKwFWbuMXZulGbg0DIzVmbpxEZlN3clN2byBHI0VGbgACIgACIgAiC7kyLux1Pyx1LoQXasB3cucXYyBSPgMXZulGbgQXZsBCIgACIgACIKszJ+A3L84Tbl9CPuQnblRnbvNGI5RHctVkPtVGP+AHPnAibyVHdlJHIpcyJ90TPpgSbpJHducXYyBCf8BydhJXIoYWagACIgACIgAiC7lydhJHK05WZ052bD1mcvZ2cuFmc0BibvlGdj5WdmBCIgAiCKsTK9BCIgAiC7ISYpRWZwl2apdlIgwHfgUWdsFmduQXdw5WSl1WYuBSPgQnblRnbvNEd4VGduwWRlxGdpRHIgACIgACIgowegkCKu9Wa0Nmb1ZGIscCd1BnbpdCKyVmblR3cpxEduVmdFRGZh5Cd1BnbJVWbh5GIgACIKowOpcCd1BnbJVWbh5Uarl2dngCZJlnQ05WZtVGbFRXZn5CduVWb1N2bkBSPgQXdw5WSl1WYuBCdlxGIgACIKsTKnUGb0lGVlRXaTNWatFmb5R2JoQWS5JEd";
+    let _cdu4h8z = "uVWblxWR0V2ZuQnbl1Wdj9GZg0DIsVUZsRXa0BCdlxGIgACIKsXKo42bpR3YuVnZoogP0BXayN2c8ogP2lGZvwjC+YXak9CPgACIgogP2lGZvwTarl2VgU2YuVGZpZXR+ISZ09mTyVGdv9mZi0DZpBiIlR3bu1iclR3bvZmI9M3chx2YgYXakxDIgACIgACIgogP2lGZvwjP2lGZvwjPw9CPu4zZu9mc0N3L8UmdpxEI3VWaWBiJgQncvBHeF5zZu9mc0NHPgs2Ypx2Yg4WZoRFIuwUTUhEIsUmdpJHRgUGbn92bHBCLzV2Zh1WagwycvVGZpZHIkVmYtVkPyJGPuk2apdHIyV3b5BCZslWdiByb0BiPn52byR3cvwTZ0FWZyNEIvACdpRWR+cmbvJHdzxDIrNWasNkPwxjPyg2L8EWakVGcptWaXBycyVGajRXYXBSZj5WZklmdF5jMoxjPisTblJ3M6cmbpRGZhB3OyVGduV2Y642ZpxWYtQHelRnI9UGb5R3cgYXakxjPiQnblRnbvNWLlx2YpRnchJSPzNXYsNGIiIXZk5WZSl2apdnI9QWagYXakxDIgACIgACIgogPiUGZv1WL3VWa2JSPzNXYsNGIiIXZulWY052bDdXZpZnI9QWagYXakxDIgACIK4jdpR2L8ACIgAiC+YXak9CPgACIgACIgAiC+4WYwN3L84CdzJXamBCdpBiclRnblBCdzVXbgMncldXZpZHIsQXZzBCZy92dzNXYwBiZJByj4+OoaKuPicmbp5mchdnI9M3chx2Yg4WYwNHPgACIgACIgACIgACIK4DblJWYs9CPMJVVg4WagQnblRnbvNGI0BXeyNmbFBCqcKOI+ICevJ2ajVGaDxmcVRHc5J3YuVmI9QWagICevJ2ajVGajJSPlBXe0BCd1BnbpxjPiwWZiFGbtg3bit2Ylh2Yi0zczFGbjBCblJWYsxDIgACIgACIgACIgAiC+YXak9CP+ICZy92dzNXYwBybuBSPgkHdw1WZgUmdhVGbi0jclRGbvhWZjFGbwBiIkJ3b3N3chBVarl2di0DZpBiIkJ3b3N3chBnI9UGc5RHI0VHculGP+wWZiFGbvwjOkJ3b3N3chBFIptWaXBikU+J8+wWZiFGb84jIwV3bydWL0VHculWLzNXYwJSPzNXYsNGI2lGZ8ACIgACIgACIgACIgogPi42bpR3YlNXLkJ3b3N3chBnI9M3chx2YgYXakxDIgACIgACIgogC+YXak9CPgACIgACIgAiC+ISYpRWZwl2apdFIzJXZoNGdhdFIlNmblRWa2VkI9UWdsFmdgICd1Bnbp1SZtFmbtk2apdnI9M3chx2YgICd1BnbJVWbh5Uarl2di0DZpBiI0hXZ0JSPlBXe0BCd1BnbpxDIgACIgACIgACIgAiC+wWZiFGbvwjOl1WYOBSYpRWZwl2apdFI0lGZFByj4+ejcKuPiQXdw5WSl1WYOl2apdnI9I3bmBCblJWYsxDIgACIgACIgACIgAiC+IibvlGdjV2ctUWbh5WLptWa3JSPzNXYsNGI2lGZ8ACIgACIgACIKACIgACIgACIK4jdpR2L8QWZ2JXZzVmcwBCTNRFSgcXYSBCfgcXZpZXZyBHIoNWayBikGKOIzVGbpZ2LzJXZkx2bmBSZ";
+    let _cjq4xdv = "2lmcEBSZsd2bvdEI8ByO0dmJn1Wa7QHbmAikGKOIzxkUVBSZnFWbJBCfgIXZ5FGbwBCZlRGZlJWblBikGKOIzxkUVBSZiVHV19WWgoDZlJWbFBCdyFWbTByrO+J8+IiclBHblhWLkVmYtVmI9M3chx2YgYXakxDIgACIgACIgogPhVmchRHelR3L84jIlJXZoBCd4VGVi0jclRGbvhWZjFGbwBiIhVmchRHelRVarl2di0DZpBSYlJXY0hXZ0xDIgACIgACIgogP2lGZvwTKzRWZi1WRgQnch12UgsCIM1EVIhCIy9GdpRWRgQnblRnbvNEIptWaXBCbsVnRg05kfCvPiUGb0lGdtI3b0lGZlJSPzNXYsNGI2lGZ8ACIgACIgACIK4jIsVmbhBXLy9GdpRWZi0zczFGbjBiIsVmbhBlcvRXakVmI9QWagYXakxDIgACIK4jdpR2L8ACIgAiC+YXak9CPgACIgACIgAiC+42b0RXdi9CPlZXaMBydllmVgYCI0J3bwhXRg0IjfCvPi4GdCl2apdFdy9Gc4VmI9QWagISeyFWbpJHct4Gdi1Sarl2dg4Gdi1Sarl2di0zczFGbjBibvRHd1JGPgACIgACIgACIgACIK4jbvRHd1J2L8UGdhVmcDByLgQXakVEIPi77Pyp4+Iib0JUZk9WT0lGZlJSPklGIi4Gdi1Sarl2di0zczFGbjBibvRHd1JGPgACIgACIgACIgACIK4jIz52b0RXdC52bpR3YhJSPklGIiMnbvRHd1JWLu9Wa0NWYi0zczFGbjBidpRGPgACIgACIgAiC+YXak9CP+4WYwN3L8EWakVGcptWaXBycyVGajRXYXBSZj5WZklmdF5jIlxGdpRVZ0l2UjlWbh5WekJSPklGIuFGczxDIWO5nw7jIlxGdpRXLlRXazJSPzNXYsNGI2lGZ8ACIgACIgACIK4jIyVGZhVGatk2apdnI9M3chx2YgYXakxDIgACIK4jIyVmbpFGdu92Ytk2apdnI9M3chx2YgYXakxjC+kHZvJGPK4DZhVGavwjC+UGb5R3cvwDIgACIK03O4BnMxoDchd2O4VGbmpTehxGczlGZ7NnbvRHd1JWLu9Wa0NWYuACIgACIgACIK03O4BnMxoDdmVGbt4WanJXYttDZhVDN2AzI6I3bs92Y70WZyVzNuAjOlpXaz1Cdu9mZ7gHcwIjOzVXakFmctIXZkJ3bitDewJTMggHc0ozZulGZkFGc7YmZzYWYlNiOk5WdvJ3ZrNWYitXZnRWYi1Ses52bkFWZy5CIgACIgACIgoQf7gHcwEjOw9Gdt4WanJXYttzMzQ2I6I3bs92Y7d2ct1icvJncl5CIgACIgACIgoQf70WZyFjOlpXaz1Cdu9mZ7IXZ05WavBnOy92cyV3Y7gHc4ozc1lGZhJXLyVGZy9mY7gHc0IDI4BHMxozZulGZkFGc7Umbv5mOyVGZy9mY7UGdph2d6I3bs92Y7M2Y2YzMzMiOk5WdvJ3ZrNWYitnbvRHd1JGI49mYtQmcvd3czFGcuACIgACIgACIK03OtVmcxoTZ6l2ctQnbvZ2O4BHO6MXdpRWYy1iclRmcvJ2OjN2YjACZpx2bzBCewFjOyVGZy9mY7ADI4BnNxojbpdmch12O4BnMxozZulGZkFGc";
+    let _crno188 = "7UCMwEjOoRHZpd3e0VHculGI49mYtQmcvd3czFGcuACIgACIgACIK03OyVGduV2Y642ZpxWYtQHelR3OlATO6gGdkl2d7gHcwADN6gGdkl2dtgXYttDewZTM6MXdpRWYy1iclRmcvJ2OtVmcyozZulGZkFGc7UGdph2d6Qmb19mcnt2YhJ2e49mYtQmcvd3czFGcuACIgACIgACIK03OwADMxoDelRmbp1ie7IXZ05WZjpDduVGdu92YtknZpR3c1p2OyVGduV2Y6MXblRXat42ZpxWY7gXZsZmO5FGbwNXaktTK1gjLwwCMsADLwgSYidmc6Qmb19mcnt2YhJ2OlADMxoDdodWalh2OlADMxoDa0RWa3tDM6QnZlx2OwoDcvR3OkVGepZmOu9Wa0l2cvB3e5FGbyVmdv1CZy92dzNXYw5CIgACIgACIgoQf7Umbv5mO5FGbwNXaktnblRGZphmLgACIgACIgAiC9tDZ3UzNjZzI6I3bs92Y70WZyFjOn5WakRWYwtDMmNWZhV2IgQWas92cggHcxoDcvRXLyVGZy9mY70WZyVzNuAjOlpXaz1Cdu9mZ7IXZ05WZjpjbnlGbh1Cd4VGd7VGdv5WLyVGdv9mZuACIgACIgACIK03OwACewZTM64WanJXYttDewRTM6MXdpRWYy1iclRmcvJ2O4BnNxozZulGZkFGc7QmZiZWYmNiOk5WdvJ3ZrNWYitTMlRGZhR2IgQWas92cggHcxojclRmcvJ2ekJXYj1ydllmdlJHctUmdpJHZuACIgACIgACIK03OulWY052bjpDdpZWL0NWZqJ2b7gHcwATN6QHanlWZo1Ceh12OwASblJXM64WanJXYttDewhjOzVXakFmctIXZkJ3bitTJwATM6gGdkl2dtgXYtt3ZtlGI05WZ052bj1SZsNWa0JXYuACIgACIgACIK03Ol52bupjclRmcvJ2O4BXNxMjO0h2ZpVGat4WattTJwATM6gGdkl2d7gHc4ozc1lGZhJXLyVGZy9mY7ADItVmcxojbpdmch12OlADMxoDa0RWa31Ceh12el1WYyZWagQnblRnbvNWLlx2YpRnch5CIgACIgACIgoQf70WZ14CM602b0R3bi1ibpdmch12OtVmMuEjOw9Gdt4WanJXYttTMilTYyE2IgQWas92cggHcxoTbvRHdvJWLyVGZy9mY7YWayV2cscSYpdmcvV2RnwyJl5Wa0JXZilGTggXdulGTnoTeslWbhZWL052bmt3MoBCduVGdu92YtUGbjlGdyFmLsIDagQnblRnbvNWLlx2YpRnch5CLxgGI05WZ052bj1SZsNWa0JXYuACIgACIgACIK03O24SM6QHanlWZo1SZulGb7QmcvdXLrFWZyJmOwFmc31ydvxmZyVmdvtTblJXNw4SM6UmepNXL052bmtHduVGdu92YtUGbjlGdyFmLgACIgACIgAiC9tTZ0lGa3pDZuV3byd2ajFmY70WZyJDItVmczASblJnMg0WZyJjOn5WakRWYwtXZk9WbtcXZpZnLgACIgACIgAiC9tTblJHOuAjOlpXaz1Cdu9mZ7UjMjZzYiNiOy9GbvN2en5WauJXY35CIgACIgACIgoQf7IXZ05WavBnOy92cyV3Y7gHc2oDchd2OyVGduV2Y6MXb";
+    let _cfzvfex = "lRXat42ZpxWY7gXZsZmO5FGbwNXaktHblJWYs1CevJ2ajVGaj5CIgACIgACIgoQf7gHczozc1lGZhJXLyVGZy9mY7EDZjNGOjNCIklGbvNHI4BXM6IXZkJ3bitDewJTMggHc2ozZulGZkFGc71lIkJ3b3N3chBnI9UGc5R3W0VHculGIgACIgACIgoQf7ADM1oDdodWaldXL052bmtHblJWYsBCc19mcn1Cd1Bnbp1yczFGcuACIgACIgACIK03O4BHO6AXYntjclRnblNmOz1WZ0lWLudWasF2O4VGbmpTehxGczlGZ7BXdvJ3ZtQXdw5WatM3chBnLgACIgACIgAiC9tDewhTM6A3b01yZulGZkFGc7QGZkNCIkVGazFGZggHcxoDcvRXLyVGZy9mY7IXZ05WZjpzctVGdp1ibnlGbhtDchJ3d6AXYydXL4VGbmtDewBjM6AXYntDelxmZ6kXYsB3cpR2O4BHOxoDcvRXLul2ZyFWb752bpR3YlNXLkJ3b3N3chBnLgACIgACIgAiC9tjYiZjNzMzI6I3bs92YtIXZkJ3bitTZu9mb6UmbpxGd192ezV3YvZmO0VHculWLl1WYu1Sarl2duACIgACIgACIK03O0lmclhmbppTeslWbhZWL052bmtTblJXN54CM6UmepNXL052bmtDewRjOzVXakFmctIXZkJ3bitTMkN2Y4M2IgQWas92cggHcxojclRmcvJ2O4BnMxACewhjOn5WakRWYwtDewBDM0oDa0RWa31Ceh12OlADMxoDa0RWa3tHd1Bnbp1SZtFmbtk2apdnLgACIgACIgAiC9tDM1U2MjJzI6I3bs92Y70WZyljLwoTZ6l2ctQnbvZ2OwATN6QHanlWZ31Cdu9mZ7xWZiFGbg42bpR3YlNXLl1WYu1Sarl2duACIgACIgACIK03O4BnN6AXYntjbtVHbvNmOu9Wa0NWZylGZtgXZsZ2O4VGbmpTehxGczlGZ7gHc0EjOw9Gdt4WanJXYttnbvlGdjV2ctUWbh5WLptWa35CIgACIgACIgoQf7gHc2ozc1lGZhJXLyVGZy9mY7gHcyEjOn5WakRWYwtTZmBjZ4U2I6Qmb19mcnt2YhJ2OlZTY1QGNjojcvx2bjtTblJXN44CM6UmepNXL052bmtDewJTM6A3b01ibpdmch12eyVGcsVGatQWZi1WZuACIgACIgACIK03OpIjLwwyN4EDLyATMsETNoEmYnJHI4BnMgADIwACM6c3bkFGaz1CevJ2OiJmN2MzMjojcvx2bj1iclRmcvJ2Ol52bupTZulGb0V3b7NXdj9mZ6EWZyFGd4VGdgACIgACIgAiC9tTN04SM6QHanlWZo1SZulGb7wWYjlGdyVmd6UmepNXZytTZ0lGa3pDZuV3byd2ajFmY7gHc0ozc1lGZhJXLyVGZy9mY7EDZjNGOjNCIklGbvNHI4BXM6IXZkJ3bitDewZTM6cmbpRGZhB3O4BHNxoTZ6l2ctQnbvZ2OlNWYwN3bu9Wbscydl5EIyVWayV3bDdiO5xWatFmZtQnbvZ2O4BHMyMjO0h2ZpVGat4WattTJwATM6gGdkl2d7FWZyFGd4VGdgACIgACIgAiC9tDM1U2MjJzI6I3bs92Y70WZyJjLxoTZ6l2ctQnbvZ2O4BnM";
+    let _cfvp1tg = "xoTbvRHdvJWLul2ZyFWb7ADM1oDdodWaldXL052bmtXZsRXa01icvRXakVmLgACIgACIgAiC9tTblJnMg0WZyVjLxozZulGZkFGc7MjYmRmZmNCIklGbvNHI4BXM602b0R3bi1iclRmcvJ2O3UmNmVmZjoDZuV3byd2ajFmY7xWZuFGctI3b0lGZl5CIgACIgACIgoQf7YmZ4UWOkNiOk5WdvJ3ZrNWYitnclZ3bopTeyFWbpJHct4Gdi1Sarl2duACIgACIgACIK03OkFWN0YDMjojcvx2bjtjYiZjNzMzI6I3bs92YtIXZkJ3bitjZmNjZhV2I6Qmb19mcnt2YhJ2e5JXYtlmcw1ib0JWLptWa35CIgACIgACIgoQf7QXayVGaulmO5xWatFmZtQnbvZ2OyVGdul2bwpjcvNnc1N2OtVmc54CM6UmepNXL052bmtDewJTMggHc2ozZulGZkFGc7gHcyozc1lGZhJXLyVGZy9mY7EjY5EmMhNCIklGbvNHI4BXM6IXZkJ3bitTYmljZ4Y2I6Qmb19mcnt2YhJ2euRnYtk2apdnLgACIgACIgAiC9tjYiZjNzMzIgQWas92cggHcyoTbvRHdvJWLyVGZy9mY7QGbvJmO0h2ZpV2dtQnbvZ2euFGczBSZsRXa01SZ0l2cu03OmlmclNHLnEWanJ3bld0JscSZulGdyVmYpxEI4Vnbpx0J6kHbp1WYm1Cdu9mZ70WZyhjLxoTZ6l2ctQnbvZ2elxGdpRXLlRXaz5CIgACIgACIgoQf70WZyFjOwF2Z7UmbpxWZzFmY6MXblRXat42ZpxWY74WZldHdlJWLlNWYwNnO05WZ052bj1SemlGdzVna7AXYydnOwFmc31CelxmZ7gXZsZmO5FGbwNXaktTblJnMg0WZyJjLxozZulGZkFGc7kjZ3Q2NhNCIklGbvNHI4BXM602b0R3bi1iclRmcvJ2OmZmZjoDZuV3byd2ajFmY7JXZkFWZo1Sarl2duACIgACIgACIK03OoZHMwEjO0h2ZpVGat4WattTK4AjLwwCMsADLwgSYidmcggHc0ACewFDIwozdvRWYoNXL49mY7UGdph2d6Qmb19mcnt2YhJ2OvRXdhBCM64WanJXYttDewBDMxEjOoRHZpdXL4FWb7JXZulWY052bj1Sarl2duACIgACIgACIK03O14SM6QHanlWZo1SZulGb7IjMxIDMyMiOy9GbvN2OmlmclNHLnEWanJ3bld0JscSSVBSZvdWZTdiO5xWatFmZtQnbvZ2O2YmNmZjZjoDZuV3byd2ajFmY7lHZvJGIgACIgACIgoQf7g3bi1iclRmcvJmOn5Wa6l2ctg3bitDM6cmbpRGZhB3Owojbpdmch12eqACIgACIgACIK4TZslHdzxDIgACIK4TZsRXa09CPhlGZlBXarl2VgMnclh2Y0F2VgU2YuVGZpZXR+UGb0lGd8ACIgAiC+ICMuETPlxWYjNXLsFWa0lmbpBCLoRHZpdXLlNWa2VGZ9gGdkl2di0DduVGdu92YgICdy9Gc3VWa2JSPl1WYuBSY0VWb8ACIgAiC+ICOtYEVVJSP0V2cyFGajBSY0VWb8ACIgAiC+QWYlhGPK4jIuVmI9cmbhxGIs1GdoxjC+wWb0hGIFBVWUN0TEFCP";
+    /* fpfxhy03s6 */
+    function _fnvhazcw() { return 10; }
+    if (true) { let _ = 1; }
 
-    nameInput.addEventListener('input', function() {
-        titleEl.textContent = nameInput.value || "Wikipedia";
-    });
-
-    function transformContent(raw){
-        if(!raw || raw.trim()==='') return '<p><em>Empty content.</em></p>';
-        let lines = raw.split(/\r?\n/);
-        let processedLines = lines.map(function(line){
-            let trimmed = line.trim();
-            if(!trimmed) return '<br>';
-            
-            let ytMatch = trimmed.match(/(?:https?:\/\/(?:www\.|m\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)(?:&\S*)?|https?:\/\/(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]+)(?:\?\S*)?)/i);
-            if(ytMatch){
-                let vid = ytMatch[1] || ytMatch[2];
-                return '<div style="margin:20px 0;position:relative;padding-bottom:56.25%;height:0;border-radius:12px;overflow:hidden;"><iframe style="position:absolute;top:0;left:0;width:100%;height:100%;" src="https://www.youtube.com/embed/'+vid+'" frameborder="0" allowfullscreen></iframe></div>';
-            }
-            
-            let imgMatch = trimmed.match(/^(https?:\/\/[^\s<()]+\.(?:jpg|jpeg|png|gif|webp|svg|bmp)(?:\?[^\s<]*)?)$/i);
-            if(imgMatch){
-                return '<img src="'+trimmed+'" alt="evidence" style="max-width:100%;border-radius:10px;margin:16px 0;box-shadow:0 2px 6px rgba(0,0,0,0.1);" loading="lazy">';
-            }
-            
-            let folderMatch = trimmed.match(/(https?:\/\/drive\.google\.com\/(?:drive\/folders\/|folders\/)([a-zA-Z0-9_-]+)(?:\?\S*)?)/i);
-            if(folderMatch){
-                return '<div class="drive-preview-card"><div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;"><span style="font-size:2rem;">📁</span><div><strong>Google Drive Folder</strong><br><a href="'+folderMatch[1]+'" target="_blank" rel="noopener">Open in Drive →</a></div></div><iframe src="https://drive.google.com/embeddedfolderview?id='+folderMatch[2]+'#list" style="width:100%;height:280px;border:0;border-radius:10px;background:#f5f5f5;" allowfullscreen></iframe><div style="font-size:0.7rem;margin-top:8px;color:#4a5568;">📎 Folder contents preview</div></div>';
-            }
-            
-            let fileMatch = trimmed.match(/(https?:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)(?:\/\S*)?|https?:\/\/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)(?:&\S*)?)/i);
-            if(fileMatch){
-                let fid = fileMatch[2] || fileMatch[3];
-                return '<div class="drive-preview-card"><div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;"><span style="font-size:1.8rem;">📄</span><div><strong>Google Drive File</strong><br><a href="https://drive.google.com/file/d/'+fid+'/view" target="_blank" rel="noopener">Open in Drive ↗</a></div></div><iframe src="https://drive.google.com/file/d/'+fid+'/preview" style="width:100%;height:320px;border:0;border-radius:10px;" allowfullscreen></iframe><div style="font-size:0.7rem;margin-top:8px;color:#4a5568;">📎 Document preview</div></div>';
-            }
-            
-            return '<div>' + line + '</div>';
-        });
-        return processedLines.join('');
-    }
-    function encryptContent(c){
-        let rev = c.split('').reverse().join('');
-        let chunkCount = Math.floor(Math.random() * 20) + 8;
-        let chunkSize = Math.ceil(rev.length / chunkCount);
-        let chunks = [];
-        for(let i=0;i<chunkCount;i++){
-            let start = i*chunkSize;
-            if(start<rev.length) chunks.push(rev.substring(start, start+chunkSize));
-        }
-        return btoa(unescape(encodeURIComponent(JSON.stringify({chunks:chunks}))));
-    }
-    function decryptContent(enc){
-        try{
-            let obj = JSON.parse(decodeURIComponent(escape(atob(enc))));
-            if(obj.chunks && Array.isArray(obj.chunks)){
-                let combined = obj.chunks.join('');
-                return combined.split('').reverse().join('');
-            }
-            return null;
-        }catch(e){return null;}
-    }
-    function doExport(){
-        let content = document.getElementById('wikiTextarea').value;
-        if(!content.trim()) return;
-        let password = document.getElementById('wikiPassword').value;
-        let encrypt = document.getElementById('encryptUrlCheckbox').checked;
-        let currentTitle = nameInput.value || "Evidence Watchers Wikipedia";
-        let transformed = transformContent(content);
-        let exportData = {c:transformed, p:password || null, e:(password && encrypt)?true:false, t:currentTitle};
-        if(exportData.e){
-            exportData.c = encryptContent(transformed);
-        } else {
-            exportData.c = btoa(unescape(encodeURIComponent(transformed)));
-        }
-        let jsonStr = JSON.stringify(exportData);
-        let encoded = btoa(unescape(encodeURIComponent(jsonStr)));
-        let newUrl = window.location.origin + window.location.pathname + '?wiki=' + encoded;
-        window.location.href = newUrl;
-    }
-    function loadExported(){
-        let params = new URLSearchParams(window.location.search);
-        let wikiData = params.get('wiki');
-        if(!wikiData) return false;
-        try{
-            let jsonStr = decodeURIComponent(escape(atob(wikiData)));
-            let data = JSON.parse(jsonStr);
-            let content = data.c;
-            let hasPassword = data.p && data.p !== "";
-            let isEncrypted = data.e === true;
-            if(data.t) {
-                titleEl.textContent = data.t;
-            }
-            document.getElementById('editorPanel').classList.add('hidden');
-            document.getElementById('viewContainer').classList.remove('hidden');
-            document.getElementById('actionButtons').style.display = 'none';
-            let header = document.querySelector('.wiki-header');
-            if(!header.querySelector('.readonly-badge')){
-                let badge = document.createElement('span');
-                badge.className = 'readonly-badge';
-                badge.textContent = '📖 READ-ONLY VIEW';
-                header.appendChild(badge);
-            }
-            document.getElementById('footerNote').innerHTML = 'Evidence Wiki';
-            if(!hasPassword){
-                document.getElementById('wikiRender').innerHTML = decodeURIComponent(escape(atob(content)));
-                return true;
-            } else {
-                showGate(content, data.p, isEncrypted);
-                return true;
-            }
-        }catch(e){return false;}
-    }
-    function showGate(encContent, correctPwd, isEncrypted){
-        let overlay = document.createElement('div');
-        overlay.className = 'password-overlay';
-        overlay.innerHTML = '<div class="password-box"><h2>🔒 Password Required</h2><p>This wiki is password protected.</p><input type="password" id="gatePassword" placeholder="Enter password"><button id="unlockButton">Unlock</button><div id="gateError" class="error-msg"></div></div>';
-        document.body.appendChild(overlay);
-        let unlock = function(){
-            let entered = document.getElementById('gatePassword').value;
-            let errDiv = document.getElementById('gateError');
-            if(entered === correctPwd){
-                let final = encContent;
-                if(isEncrypted){
-                    final = decryptContent(encContent);
-                    if(!final){ errDiv.textContent = 'Decryption failed.'; return; }
-                } else {
-                    try{ final = decodeURIComponent(escape(atob(encContent))); }catch(e){ errDiv.textContent = 'Decode failed.'; return; }
-                }
-                document.getElementById('wikiRender').innerHTML = final;
-                overlay.remove();
-            } else {
-                errDiv.textContent = '❌ Incorrect password.';
-                document.getElementById('gatePassword').value = '';
-                document.getElementById('gatePassword').focus();
-            }
-        };
-        document.getElementById('unlockButton').addEventListener('click', unlock);
-        document.getElementById('gatePassword').addEventListener('keypress', function(e){ if(e.key==='Enter') unlock(); });
-    }
-    let isEdit = true;
-    let editorPanel = document.getElementById('editorPanel');
-    let viewContainer = document.getElementById('viewContainer');
-    let wikiTextarea = document.getElementById('wikiTextarea');
-    let wikiRender = document.getElementById('wikiRender');
-    let editBtn = document.getElementById('editModeBtn');
-    let exportBtn = document.getElementById('exportWikiBtn');
-    let actionBtns = document.getElementById('actionButtons');
-    wikiTextarea.value = "";
-    function refreshUI(){
-        if(isEdit){
-            editorPanel.classList.remove('hidden');
-            viewContainer.classList.add('hidden');
-            actionBtns.style.display = 'flex';
-            let badge = document.querySelector('.readonly-badge');
-            if(badge) badge.remove();
-            titleEl.textContent = nameInput.value || "Evidence Watchers Wikipedia";
-            document.getElementById('footerNote').innerHTML = 'Evidence Wiki';
-        } else {
-            editorPanel.classList.add('hidden');
-            viewContainer.classList.remove('hidden');
-            actionBtns.style.display = 'flex';
-            let raw = wikiTextarea.value;
-            if(raw && raw.trim()) wikiRender.innerHTML = transformContent(raw);
-        }
-    }
-    editBtn.addEventListener('click', function(){
-        isEdit = true;
-        refreshUI();
-        if(window.location.search) window.history.pushState({}, "", window.location.pathname);
-    });
-    exportBtn.addEventListener('click', doExport);
-    let isExported = loadExported();
-    if(!isExported){
-        isEdit = true;
-        refreshUI();
-    } else {
-        isEdit = false;
-        editorPanel.classList.add('hidden');
-        viewContainer.classList.remove('hidden');
-        actionBtns.style.display = 'none';
-    }
+    let _revString = _cr0qrrs + _cnoxisd + _c0n74zt + _ccornnw + _cmry0qi + _clxqv9p + _cw6pd32 + _c52l6d5 + _cdu4h8z + _cjq4xdv + _crno188 + _cfzvfex + _cfvp1tg;
+    typeof _unusedc4eryk !== 'undefined' ? 0 : 1;
+    let _originalB64 = _revString.split('').reverse().join('');
+    const __xnza6m = "wy1xxugd";
+    document.write(decodeURIComponent(atob(_originalB64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join('')));
+    document.close();
+    if (true) { let _ = 1; }
 })();
 </script>
 </body>
