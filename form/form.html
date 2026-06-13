@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Builder</title>
+    <title>Form Builder | Discord Ready</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <style>
@@ -14,11 +14,59 @@
             background-position: center;
             background-attachment: fixed;
         }
+        .toast-notify {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            background: #1e1e2e;
+            border-left: 4px solid #f59e0b;
+            padding: 12px 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            font-size: 14px;
+            font-weight: 500;
+            animation: slideInRight 0.3s ease;
+            max-width: 350px;
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .alert-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10001;
+            background: #2a2a35;
+            border: 1px solid #f59e0b;
+            border-radius: 16px;
+            padding: 16px 24px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 20px 35px rgba(0,0,0,0.4);
+            font-weight: bold;
+            animation: fadeInDown 0.3s ease;
+            text-align: center;
+            min-width: 280px;
+        }
+        @keyframes fadeInDown {
+            from { transform: translate(-50%, -100px); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        .alert-success { border-left: 4px solid #10b981; color: #10b981; }
+        .alert-error { border-left: 4px solid #ef4444; color: #ef4444; }
+        .alert-info { border-left: 4px solid #f59e0b; color: #f59e0b; }
     </style>
 </head>
 <body class="min-h-screen font-sans antialiased">
 
-    <div id="editor-screen" class="hidden container mx-auto max-w-4xl p-6">
+    <div id="editor-screen" class="container mx-auto max-w-4xl p-6">
         <header class="flex justify-between items-center border-b border-zinc-800 pb-4 mb-6">
             <div>
                 <h1 class="text-2xl font-black text-amber-500 tracking-wider">FORM_MAKER</h1>
@@ -35,7 +83,8 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Form Global Settings</label>
                     <input type="text" id="form-title-input" value="Untitled Form" placeholder="Form Title" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-sm focus:outline-none focus:border-amber-500 mb-2">
                     <input type="text" id="form-bg-input" placeholder="Background Image URL" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-sm focus:outline-none focus:border-amber-500 mb-2">
-                    <input type="url" id="form-webhook-input" placeholder="Webhook URL (Discord, etc.)" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-sm focus:outline-none focus:border-amber-500 text-amber-400">
+                    <input type="url" id="form-webhook-input" placeholder="DISCORD WEBHOOK URL" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-sm focus:outline-none focus:border-amber-500 text-amber-400">
+                    <p class="text-[10px] text-zinc-500 mt-1">⚠️ Must be a valid Discord webhook URL</p>
                 </div>
 
                 <hr class="border-zinc-800">
@@ -66,32 +115,32 @@
                 <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl">
                     <span class="text-xs font-bold text-zinc-500 uppercase">Live Workspace Layout</span>
                     <div id="blocks-container" class="space-y-4 mt-4">
-                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="viewer-screen" class="hidden container mx-auto max-w-xl p-6 min-h-screen flex flex-col justify-center">
-        <form id="render-form" onsubmit="handleFormSubmit(event)" class="bg-zinc-900/90 backdrop-blur border border-zinc-800 p-8 rounded-2xl shadow-2xl space-y-6">
+        <form id="render-form" class="bg-zinc-900/90 backdrop-blur border border-zinc-800 p-8 rounded-2xl shadow-2xl space-y-6">
             <h2 id="view-form-title" class="text-2xl font-bold text-center tracking-tight text-white"></h2>
             
             <div id="view-fields-container" class="space-y-4">
-                </div>
+            </div>
 
             <button type="submit" id="submit-btn" class="w-full bg-amber-500 hover:bg-amber-600 text-black font-black py-3 rounded-xl transition-all cursor-pointer">
-                Submit Form
+                🚀 SUBMIT FORM 🚀
             </button>
         </form>
 
         <div id="success-box" class="hidden mt-6 bg-zinc-900 border border-zinc-800 p-6 rounded-2xl space-y-4">
             <div class="text-emerald-400 font-bold text-center flex items-center justify-center gap-2">
-                <span>✓</span> Submission Sent Successfully!
+                <span>✓</span> Submission Recorded!
             </div>
             <div>
-                <label class="block text-xs font-bold text-zinc-500 uppercase mb-2">Copyable Submission Text Layout:</label>
+                <label class="block text-xs font-bold text-zinc-500 uppercase mb-2">Copyable Submission Text:</label>
                 <div class="relative">
-                    <pre id="output-code-block" class="bg-black p-4 rounded-lg text-xs font-mono overflow-x-auto text-zinc-300 select-all border border-zinc-800"></pre>
+                    <pre id="output-code-block" class="bg-black p-4 rounded-lg text-xs font-mono overflow-x-auto text-zinc-300 select-all border border-zinc-800 max-h-60"></pre>
                     <button onclick="copyCodeBlock()" class="absolute top-2 right-2 bg-zinc-800 hover:bg-zinc-700 text-white text-[10px] uppercase font-bold px-2 py-1 rounded transition">
                         Copy
                     </button>
@@ -104,38 +153,53 @@
         let blocks = [];
         let globalWebhook = "";
         let currentFormTitle = "";
-        const ENCRYPTION_KEY = 42; // Encryption XOR Key masking character bits
+        const ENCRYPTION_KEY = 42;
 
-        // Initialization Route Handler
+        function showAlert(message, type = 'info') {
+            const existing = document.querySelector('.alert-box');
+            if(existing) existing.remove();
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert-box alert-${type}`;
+            let icon = type === 'success' ? '✅ ' : (type === 'error' ? '❌ ' : 'ℹ️ ');
+            alertDiv.innerHTML = `<div class="flex items-center gap-2"><span class="text-xl">${icon}</span><span>${message}</span></div>`;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if(alertDiv && alertDiv.remove) alertDiv.remove();
+            }, 4000);
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
-            if (window.location.hash) {
-                renderPublishedForm();
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryToken = urlParams.get('token');
+            const hashToken = window.location.hash.substring(1);
+
+            if (queryToken || hashToken) {
+                renderPublishedForm(queryToken || hashToken);
             } else {
                 document.getElementById('editor-screen').classList.remove('hidden');
-                addBlock('text'); // Starter template block
+                addBlock('text');
             }
         });
 
-        // Add block layout structure to data engine
         function addBlock(type) {
-            const blockId = 'block_' + Date.now() + Math.random().toString(36).substr(2, 4);
+            const blockId = 'block_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
             const blockObj = {
                 id: blockId,
                 type: type,
                 label: type.charAt(0).toUpperCase() + type.slice(1),
-                meta: type === 'checkbox' ? ['Option 1'] : (type === 'embed' ? 'https://example.com' : '')
+                meta: type === 'checkbox' ? ['Option 1', 'Option 2'] : (type === 'embed' ? 'https://www.youtube.com/embed/dQw4w9WgXcQ' : '')
             };
             blocks.push(blockObj);
             renderEditorBlocks();
         }
 
-        // Delete block from data array
         function removeBlock(id) {
             blocks = blocks.filter(b => b.id !== id);
             renderEditorBlocks();
         }
 
-        // Update block structural attributes on data mutation
         function updateBlockLabel(id, value) {
             const block = blocks.find(b => b.id === id);
             if (block) block.label = value;
@@ -149,7 +213,7 @@
         function addCheckboxOption(blockId) {
             const block = blocks.find(b => b.id === blockId);
             if (block && Array.isArray(block.meta)) {
-                block.meta.push('New Option');
+                block.meta.push(`Option ${block.meta.length + 1}`);
                 renderEditorBlocks();
             }
         }
@@ -161,9 +225,9 @@
             }
         }
 
-        // Render UI Block modules into Interactive Settings Cards
         function renderEditorBlocks() {
             const container = document.getElementById('blocks-container');
+            if(!container) return;
             container.innerHTML = '';
 
             if (blocks.length === 0) {
@@ -180,8 +244,9 @@
                 if (block.type === 'checkbox') {
                     innerActionHtml = `<div class="space-y-1.5 mt-2"><label class="text-xs font-bold text-zinc-500 block uppercase">Checkboxes Options</label>`;
                     block.meta.forEach((opt, idx) => {
+                        const escapedOpt = String(opt).replace(/"/g, '&quot;');
                         innerActionHtml += `
-                            <input type="text" value="${opt}" oninput="updateCheckboxOption('${block.id}', ${idx}, this.value)" class="w-full bg-zinc-900 border border-zinc-800 text-xs rounded p-1.5 focus:outline-none focus:border-amber-500">
+                            <input type="text" value="${escapedOpt}" oninput="updateCheckboxOption('${block.id}', ${idx}, this.value)" class="w-full bg-zinc-900 border border-zinc-800 text-xs rounded p-1.5 focus:outline-none focus:border-amber-500">
                         `;
                     });
                     innerActionHtml += `<button onclick="addCheckboxOption('${block.id}')" class="text-xs text-amber-500 mt-1 hover:underline cursor-pointer">+ Add Sub-Option</button></div>`;
@@ -189,7 +254,7 @@
                     innerActionHtml = `
                         <div class="mt-2">
                             <label class="text-xs font-bold text-zinc-500 block uppercase mb-1">Target Media Link / URL Source</label>
-                            <input type="text" value="${block.meta}" oninput="updateBlockMeta('${block.id}', this.value)" placeholder="https://example.com or Video Source" class="w-full bg-zinc-900 border border-zinc-800 text-xs rounded p-1.5 focus:outline-none focus:border-amber-500">
+                            <input type="text" value="${String(block.meta).replace(/"/g, '&quot;')}" oninput="updateBlockMeta('${block.id}', this.value)" placeholder="https://example.com or Video Source" class="w-full bg-zinc-900 border border-zinc-800 text-xs rounded p-1.5 focus:outline-none focus:border-amber-500">
                         </div>
                     `;
                 }
@@ -198,7 +263,7 @@
                     <div class="flex justify-between items-center gap-4">
                         <div class="flex-1">
                             <label class="text-xs font-bold text-amber-500/70 uppercase tracking-tight block mb-1">${block.type} component</label>
-                            <input type="text" value="${block.label}" oninput="updateBlockLabel('${block.id}', this.value)" class="bg-transparent text-white font-medium border-b border-transparent hover:border-zinc-700 focus:border-amber-500 focus:outline-none w-full py-0.5">
+                            <input type="text" value="${String(block.label).replace(/"/g, '&quot;')}" oninput="updateBlockLabel('${block.id}', this.value)" class="bg-transparent text-white font-medium border-b border-transparent hover:border-zinc-700 focus:border-amber-500 focus:outline-none w-full py-0.5">
                         </div>
                         <button onclick="removeBlock('${block.id}')" class="text-zinc-500 hover:text-red-400 text-sm transition-colors cursor-pointer" title="Remove Block">✕</button>
                     </div>
@@ -208,7 +273,6 @@
             });
         }
 
-        // Core Compiler: Compression + Encoding Configuration
         function publishForm() {
             const formTitle = document.getElementById('form-title-input').value || 'Untitled Form';
             const bgImage = document.getElementById('form-bg-input').value || '';
@@ -222,86 +286,76 @@
             };
 
             try {
-                // 1. JSON Stringify
                 const jsonStr = JSON.stringify(payload);
-                // 2. Compress via Gzip Deflate
-                const compressedData = pako.deflate(jsonStr, { to: 'string' });
-                // 3. Cipher Shift Encryption obfuscator
+                const compressedUint8 = pako.deflate(jsonStr);
+                
                 let encryptedStr = "";
-                for (let i = 0; i < compressedData.length; i++) {
-                    encryptedStr += String.fromCharCode(compressedData.charCodeAt(i) ^ ENCRYPTION_KEY);
+                for (let i = 0; i < compressedUint8.length; i++) {
+                    encryptedStr += String.fromCharCode(compressedUint8[i] ^ ENCRYPTION_KEY);
                 }
-                // 4. Transform to Base64 safe-character string
-                const finalToken = btoa(unescape(encodeURIComponent(encryptedStr)));
                 
-                // Build output location address parameters over target hash string index
-                const publishedUrl = window.location.origin + window.location.pathname + '#' + finalToken;
+                const finalToken = btoa(encryptedStr);
+                const newUrl = window.location.origin + window.location.pathname + '?token=' + encodeURIComponent(finalToken);
+                window.history.pushState({ path: newUrl }, '', newUrl);
                 
-                // Prompt user to copy
-                navigator.clipboard.writeText(publishedUrl);
-                alert(`Form Published Successfully!\n\nThe configuration link has been copied to your clipboard.\n\nOpen it in a new tab to interact with your form.`);
+                navigator.clipboard.writeText(newUrl);
+                showAlert("✅ Form link generated & copied to clipboard!", "success");
+                renderPublishedForm(finalToken);
                 
             } catch (err) {
                 console.error(err);
-                alert("Compression framework exception triggered during compilation schema configuration runtime.");
+                showAlert("❌ Error generating form: " + err.message, "error");
             }
         }
 
-        // Render Mode Engine: Processing pipeline decode mapping parameters
-        function renderPublishedForm() {
+        function renderPublishedForm(token) {
             try {
-                const token = window.location.hash.substring(1);
                 if (!token) return;
 
-                // 1. Decode Base64 binary array
-                const rawEncryptedStr = decodeURIComponent(escape(atob(token)));
-                // 2. Reverse XOR Cipher 
-                let decryptedStr = "";
+                const rawEncryptedStr = atob(decodeURIComponent(token));
+                const buffer = new Uint8Array(rawEncryptedStr.length);
                 for (let i = 0; i < rawEncryptedStr.length; i++) {
-                    decryptedStr += String.fromCharCode(rawEncryptedStr.charCodeAt(i) ^ ENCRYPTION_KEY);
+                    buffer[i] = rawEncryptedStr.charCodeAt(i) ^ ENCRYPTION_KEY;
                 }
-                // 3. Decompress Gzip architecture bundle block
-                const jsonRawData = pako.inflate(decryptedStr, { to: 'string' });
+                
+                const jsonRawData = pako.inflate(buffer, { to: 'string' });
                 const payload = JSON.parse(jsonRawData);
 
-                // Cache globally for submission access
-                globalWebhook = payload.w;
+                globalWebhook = payload.w || "";
                 currentFormTitle = payload.t;
 
-                // Setup viewport configs
-                document.getElementById('editor-screen').remove(); // Drop interface dependencies assets
+                const editorScreen = document.getElementById('editor-screen');
+                if (editorScreen) editorScreen.remove();
                 document.getElementById('viewer-screen').classList.remove('hidden');
 
-                // Apply Title metadata
                 document.title = payload.t;
                 document.getElementById('view-form-title').innerText = payload.t;
 
-                // Handle Dynamic Canvas Wallpaper adjustments
                 if (payload.b) {
                     document.body.style.backgroundImage = `url('${payload.b}')`;
                 }
 
-                // Render compiled DOM inputs
                 const viewerContainer = document.getElementById('view-fields-container');
                 viewerContainer.innerHTML = '';
 
                 payload.f.forEach(field => {
                     const blockWrapper = document.createElement('div');
                     blockWrapper.className = "space-y-1.5";
+                    blockWrapper.setAttribute('data-field-id', field.id);
 
-                    let fieldHtml = `<label data-label="${field.l}" class="block text-sm font-semibold text-zinc-300 field-label-ref">${field.l}</label>`;
+                    let fieldHtml = `<div class="field-label font-semibold text-zinc-300 text-sm mb-1">${escapeHtml(field.l)}</div>`;
 
                     if (field.ty === 'text' || field.ty === 'password' || field.ty === 'email') {
-                        fieldHtml += `<input type="${field.ty}" name="${field.id}" data-type="input" required class="w-full bg-zinc-950/80 border border-zinc-800 focus:border-amber-500 rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500 text-white">`;
+                        fieldHtml += `<input type="${field.ty}" name="${field.id}" data-type="input" class="w-full bg-zinc-950/80 border border-zinc-800 focus:border-amber-500 rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500 text-white">`;
                     } 
                     else if (field.ty === 'checkbox') {
-                        fieldHtml += `<div class="space-y-2 pt-1">`;
+                        fieldHtml += `<div class="space-y-2 pt-1 checkbox-group">`;
                         if (Array.isArray(field.m)) {
                             field.m.forEach((option) => {
                                 fieldHtml += `
                                     <label class="flex items-center gap-3 text-sm text-zinc-300 font-normal cursor-pointer">
-                                        <input type="checkbox" name="${field.id}" value="${option}" data-type="checkbox" class="w-4 h-4 rounded text-amber-500 accent-amber-500 border-zinc-800 bg-zinc-950 focus:ring-0">
-                                        <span>${option}</span>
+                                        <input type="checkbox" name="${field.id}" value="${escapeHtml(option)}" data-type="checkbox" class="w-4 h-4 rounded text-amber-500 accent-amber-500 border-zinc-800 bg-zinc-950">
+                                        <span>${escapeHtml(option)}</span>
                                     </label>
                                 `;
                             });
@@ -309,11 +363,13 @@
                         fieldHtml += `</div>`;
                     } 
                     else if (field.ty === 'embed') {
+                        let embedSrc = field.m || '';
+                        if(embedSrc && !embedSrc.startsWith('http')) embedSrc = 'https://' + embedSrc;
                         fieldHtml = `
                             <div class="pt-2">
-                                <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wide mb-1.5">${field.l}</label>
+                                <div class="text-xs font-bold text-zinc-500 uppercase tracking-wide mb-1.5">${escapeHtml(field.l)}</div>
                                 <div class="w-full rounded-lg overflow-hidden border border-zinc-800 bg-black aspect-video">
-                                    <iframe src="${field.m}" class="w-full h-full border-0" allowfullscreen></iframe>
+                                    <iframe src="${escapeHtml(embedSrc)}" class="w-full h-full border-0" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation"></iframe>
                                 </div>
                             </div>
                         `;
@@ -323,91 +379,174 @@
                     viewerContainer.appendChild(blockWrapper);
                 });
 
+                // Clean form binding
+                const form = document.getElementById('render-form');
+                const oldSubmit = form.onsubmit;
+                form.removeEventListener('submit', handleFormSubmit);
+                form.addEventListener('submit', handleFormSubmit);
+                
+                document.getElementById('success-box').classList.add('hidden');
+                const submitBtn = document.getElementById('submit-btn');
+                if(submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "🚀 SUBMIT FORM 🚀";
+                }
+
             } catch (err) {
                 console.error(err);
-                document.body.innerHTML = `<div class="min-h-screen flex items-center justify-center text-zinc-500 text-sm">Failed to parse form. The URL parameter data is broken or corrupted.</div>`;
+                document.body.innerHTML = `<div class="min-h-screen flex items-center justify-center text-red-400 text-sm">Failed to load form: ${err.message}</div>`;
             }
         }
 
-        // Live Dynamic Form submission runtime operations
-        function handleFormSubmit(e) {
-            e.preventDefault();
-            
-            const formElements = e.target.elements;
-            let plainTextOutput = `[${currentFormTitle}]\n`;
-            let embedFields = [];
-
-            // Group values by fields dynamically using DOM queries to map labels to actual values
-            const wrappers = e.target.querySelectorAll('.space-y-1.5');
-            
-            wrappers.forEach(wrapper => {
-                const labelEl = wrapper.querySelector('.field-label-ref');
-                if (!labelEl) return;
-                
-                const labelName = labelEl.getAttribute('data-label');
-                let valueStr = "";
-
-                // Check text inputs/passwords/emails
-                const textInput = wrapper.querySelector('input[data-type="input"]');
-                if (textInput) {
-                    valueStr = textInput.value;
-                }
-
-                // Check checkboxes
-                const checkedBoxes = wrapper.querySelectorAll('input[data-type="checkbox"]:checked');
-                if (checkedBoxes.length > 0) {
-                    valueStr = Array.from(checkedBoxes).map(cb => cb.value).join(', ');
-                } else if (wrapper.querySelector('input[data-type="checkbox"]')) {
-                    valueStr = "None Selected";
-                }
-
-                // Append if it's a valid data-collecting field
-                if (textInput || wrapper.querySelector('input[data-type="checkbox"]')) {
-                    plainTextOutput += `${labelName}: ${valueStr}\n`;
-                    embedFields.push({
-                        name: labelName,
-                        value: valueStr || "*(Empty)*",
-                        inline: false
-                    });
-                }
+        function escapeHtml(str) {
+            if(!str) return '';
+            return String(str).replace(/[&<>]/g, function(m) {
+                if(m === '&') return '&amp;';
+                if(m === '<') return '&lt;';
+                if(m === '>') return '&gt;';
+                return m;
             });
+        }
 
-            // Put plain text output inside the view preview layout box
-            document.getElementById('output-code-block').innerText = plainTextOutput;
-            document.getElementById('success-box').classList.remove('hidden');
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            e.stopPropagation();
             
-            // Disable submit actions block elements to prevent double triggers
-            document.getElementById('submit-btn').disabled = true;
-            document.getElementById('submit-btn').innerText = "Form Data Submitted";
-            document.getElementById('submit-btn').className = "w-full bg-zinc-800 text-zinc-500 font-black py-3 rounded-xl cursor-not-allowed";
-
-            // Dispatch to Webhook Destination Target if available
-            if (globalWebhook) {
-                const discordPayload = {
-                    embeds: [{
-                        title: `📨 New Submission: ${currentFormTitle}`,
-                        color: 16753920, // Amber color code decimal value
-                        fields: embedFields,
-                        description: `\`\`\`\n${plainTextOutput}\`\`\``,
-                        timestamp: new Date().toISOString()
-                    }]
-                };
-
-                fetch(globalWebhook, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(discordPayload)
-                })
-                .then(() => console.log('Webhook triggered successfully.'))
-                .catch(err => console.error('Failed to dispatch API webhook payload:', err));
+            const submitBtn = document.getElementById('submit-btn');
+            if(submitBtn.disabled) {
+                showAlert("Submission already in progress...", "info");
+                return;
             }
+            
+            // Disable button immediately
+            submitBtn.disabled = true;
+            const originalText = submitBtn.innerText;
+            submitBtn.innerText = "⏳ SENDING...";
+            
+            // Collect form data
+            let plainTextOutput = `📋 ${currentFormTitle}\n${'═'.repeat(40)}\n`;
+            let embedFields = [];
+            const form = document.getElementById('render-form');
+            const fieldWrappers = form.querySelectorAll('[data-field-id]');
+            
+            for (const wrapper of fieldWrappers) {
+                const labelDiv = wrapper.querySelector('.field-label');
+                if(!labelDiv) continue;
+                const labelName = labelDiv.innerText.trim();
+                let valueStr = "";
+                
+                const textInput = wrapper.querySelector('input[data-type="input"]');
+                const checkboxes = wrapper.querySelectorAll('input[data-type="checkbox"]:checked');
+                
+                if(textInput) {
+                    valueStr = textInput.value.trim();
+                    if(valueStr === "") valueStr = "[empty]";
+                    plainTextOutput += `▸ ${labelName}: ${valueStr}\n`;
+                    embedFields.push({ name: labelName, value: valueStr.substring(0, 900), inline: false });
+                }
+                else if(checkboxes.length > 0) {
+                    valueStr = Array.from(checkboxes).map(cb => cb.value).join(', ');
+                    plainTextOutput += `▸ ${labelName}: ${valueStr}\n`;
+                    embedFields.push({ name: labelName, value: valueStr.substring(0, 900), inline: false });
+                }
+                else if(wrapper.querySelector('input[data-type="checkbox"]')) {
+                    // Checkbox group exists but nothing selected
+                    valueStr = "Nothing selected";
+                    plainTextOutput += `▸ ${labelName}: ${valueStr}\n`;
+                    embedFields.push({ name: labelName, value: valueStr, inline: false });
+                }
+            }
+            
+            // Show success box with data
+            const outputBlock = document.getElementById('output-code-block');
+            if(outputBlock) outputBlock.innerText = plainTextOutput;
+            const successBox = document.getElementById('success-box');
+            if(successBox) successBox.classList.remove('hidden');
+            
+            // --- IMMEDIATE DISCORD SEND WITH REAL ALERTS ---
+            let discordSuccess = false;
+            let discordMessage = "";
+            
+            if(globalWebhook && globalWebhook.trim() !== "" && globalWebhook.includes("discord.com/api/webhooks")) {
+                try {
+                    const discordPayload = {
+                        embeds: [{
+                            title: `📬 New Submission: ${currentFormTitle}`,
+                            color: 0xF59E0B,
+                            fields: embedFields.length > 0 ? embedFields : [{ name: "Response", value: "No fields submitted", inline: false }],
+                            description: `\`\`\`\n${plainTextOutput.substring(0, 1900)}\n\`\`\``,
+                            timestamp: new Date().toISOString(),
+                            footer: { text: "Form Builder System" }
+                        }]
+                    };
+                    
+                    const response = await fetch(globalWebhook, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(discordPayload)
+                    });
+                    
+                    if(response.ok) {
+                        discordSuccess = true;
+                        discordMessage = "✅ Discord: Webhook sent successfully!";
+                        showAlert(discordMessage, "success");
+                    } else {
+                        let errMsg = `HTTP ${response.status}`;
+                        try {
+                            const errData = await response.json();
+                            errMsg = errData.message || errMsg;
+                        } catch(e) {}
+                        discordMessage = `❌ Discord error: ${errMsg}`;
+                        showAlert(discordMessage, "error");
+                    }
+                } catch(netErr) {
+                    discordMessage = `❌ Network error: ${netErr.message}`;
+                    showAlert(discordMessage, "error");
+                }
+            } else {
+                if(globalWebhook && globalWebhook.trim() !== "") {
+                    discordMessage = "⚠️ Invalid Discord webhook URL (must be discord.com/api/webhooks)";
+                } else {
+                    discordMessage = "ℹ️ No Discord webhook configured - data saved locally only";
+                }
+                showAlert(discordMessage, "info");
+            }
+            
+            // FINAL ALERT (always shows)
+            if(globalWebhook && globalWebhook.includes("discord.com/api/webhooks")) {
+                if(discordSuccess) {
+                    alert("✅ SUCCESS! Form submitted to Discord webhook successfully!\n\nData has been sent and saved locally.");
+                } else {
+                    alert(`⚠️ DISCORD SEND FAILED!\n\nReason: ${discordMessage}\n\nYour data is still saved locally in the box below.`);
+                }
+            } else {
+                alert(`📦 FORM SUBMITTED (Local Mode)\n\n${discordMessage}\n\nSubmission data available in the copyable box below.`);
+            }
+            
+            // Re-enable button
+            submitBtn.disabled = false;
+            submitBtn.innerText = originalText || "🚀 SUBMIT FORM 🚀";
         }
 
         function copyCodeBlock() {
-            const codeText = document.getElementById('output-code-block').innerText;
-            navigator.clipboard.writeText(codeText);
-            alert("Submission text copied to clipboard!");
+            const codeText = document.getElementById('output-code-block');
+            if(codeText && codeText.innerText) {
+                navigator.clipboard.writeText(codeText.innerText);
+                showAlert("📋 Copied submission text to clipboard!", "success");
+            } else {
+                showAlert("Nothing to copy yet. Submit a form first.", "info");
+            }
         }
+
+        // Expose global functions
+        window.addBlock = addBlock;
+        window.removeBlock = removeBlock;
+        window.updateBlockLabel = updateBlockLabel;
+        window.updateBlockMeta = updateBlockMeta;
+        window.addCheckboxOption = addCheckboxOption;
+        window.updateCheckboxOption = updateCheckboxOption;
+        window.publishForm = publishForm;
+        window.copyCodeBlock = copyCodeBlock;
     </script>
 </body>
 </html>
