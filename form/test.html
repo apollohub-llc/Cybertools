@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <style>
-        body { background-color: #121212; color: #e0e0e0; }
+        body { background-color: #121212; color: #e0e0e0; background-size: cover; background-position: center; background-attachment: fixed; }
     </style>
 </head>
 <body class="min-h-screen font-sans antialiased">
@@ -16,14 +16,20 @@
         <header class="flex justify-between items-center border-b border-zinc-800 pb-4 mb-6">
             <div>
                 <h1 class="text-2xl font-black text-amber-500 tracking-wider">FORM_MAKER</h1>
+                <p class="text-xs text-zinc-500">Databaseless & Serverless Encrypted Generator</p>
             </div>
-            <button onclick="publishForm()" class="bg-amber-500 hover:bg-amber-600 text-black font-bold px-6 py-2 rounded-lg cursor-pointer">Publish Form</button>
+            <button onclick="publishForm()" class="bg-amber-500 hover:bg-amber-600 text-black font-bold px-6 py-2 rounded-lg transition-all cursor-pointer">Publish Form</button>
         </header>
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="md:col-span-1 bg-zinc-900 border border-zinc-800 p-4 rounded-xl space-y-6">
+            <div class="md:col-span-1 bg-zinc-900 border border-zinc-800 p-4 rounded-xl h-fit space-y-6">
                 <input type="text" id="form-title-input" value="Untitled Form" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-sm">
+                <input type="text" id="form-bg-input" placeholder="Background Image URL" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-sm">
                 <input type="url" id="form-webhook-input" placeholder="Webhook URL" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-sm text-amber-400">
-                <button onclick="addBlock('text')" class="w-full bg-zinc-950 border border-zinc-800 p-2 rounded text-left text-sm cursor-pointer">+ Text Input</button>
+                <div class="grid grid-cols-1 gap-2">
+                    <button onclick="addBlock('text')" class="w-full bg-zinc-950 border border-zinc-800 p-2 text-left text-sm cursor-pointer hover:border-amber-500">📝 Text Input</button>
+                    <button onclick="addBlock('checkbox')" class="w-full bg-zinc-950 border border-zinc-800 p-2 text-left text-sm cursor-pointer hover:border-amber-500">☑️ Checkbox Group</button>
+                </div>
             </div>
             <div class="md:col-span-2 bg-zinc-900 border border-zinc-800 p-4 rounded-xl">
                 <div id="blocks-container" class="space-y-4"></div>
@@ -32,86 +38,87 @@
     </div>
 
     <div id="viewer-screen" class="hidden container mx-auto max-w-xl p-6 min-h-screen flex flex-col justify-center">
-        <form id="render-form" class="bg-zinc-900 border border-zinc-800 p-8 rounded-2xl space-y-6">
+        <form id="render-form" class="bg-zinc-900 border border-zinc-800 p-8 rounded-2xl shadow-2xl space-y-6">
             <h2 id="view-form-title" class="text-2xl font-bold text-center text-white"></h2>
             <div id="view-fields-container" class="space-y-4"></div>
-            <button type="submit" id="submit-btn" class="w-full bg-amber-500 text-black font-black py-3 rounded-xl cursor-pointer">Submit Form</button>
+            <button type="submit" id="submit-btn" class="w-full bg-amber-500 hover:bg-amber-600 text-black font-black py-3 rounded-xl cursor-pointer">Submit Form</button>
         </form>
         <div id="success-box" class="hidden mt-6 bg-zinc-900 border border-zinc-800 p-6 rounded-2xl">
-            <p class="text-emerald-400 font-bold text-center">✓ Submission Sent Successfully!</p>
+            <pre id="output-code-block" class="text-xs font-mono text-zinc-300"></pre>
         </div>
     </div>
 
     <script>
-        let blocks = [];
-        let globalWebhook = "";
-        let currentFormTitle = "";
-        const ENCRYPTION_KEY = 42;
+        let blocks = [], globalWebhook = "", currentFormTitle = "", ENCRYPTION_KEY = 42;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const token = new URLSearchParams(window.location.search).get('token') || window.location.hash.substring(1);
+            if (token) renderPublishedForm(token);
+            else { document.getElementById('editor-screen').classList.remove('hidden'); addBlock('text'); }
+        });
 
         function addBlock(type) {
-            blocks.push({ id: 'b_' + Date.now(), type, label: 'New Field', meta: '' });
+            blocks.push({ id: 'b_' + Date.now(), type, label: 'New Field', meta: type === 'checkbox' ? ['Option 1'] : '' });
             renderEditorBlocks();
         }
 
         function renderEditorBlocks() {
-            const container = document.getElementById('blocks-container');
-            container.innerHTML = blocks.map(b => `<div class="bg-zinc-950 p-3 rounded text-amber-500 text-sm">${b.label}</div>`).join('');
+            document.getElementById('blocks-container').innerHTML = blocks.map(b => `<div class="bg-zinc-950 p-3 rounded border border-zinc-800 text-amber-500 text-sm">${b.label}</div>`).join('');
         }
 
         function publishForm() {
             const payload = { t: document.getElementById('form-title-input').value, w: document.getElementById('form-webhook-input').value, f: blocks };
             const encrypted = btoa(String.fromCharCode(...pako.deflate(JSON.stringify(payload)).map(b => b ^ ENCRYPTION_KEY)));
-            const url = window.location.origin + window.location.pathname + '?token=' + encodeURIComponent(encrypted);
-            navigator.clipboard.writeText(url);
+            const newUrl = window.location.origin + window.location.pathname + '?token=' + encodeURIComponent(encrypted);
+            navigator.clipboard.writeText(newUrl);
             alert("Link copied!");
             renderPublishedForm(encrypted);
         }
 
         function renderPublishedForm(token) {
-            const data = JSON.parse(pako.inflate(new Uint8Array(atob(decodeURIComponent(token)).split('').map(c => c.charCodeAt(0) ^ ENCRYPTION_KEY), {to: 'string'})));
-            globalWebhook = data.w;
-            currentFormTitle = data.t;
-            document.getElementById('editor-screen').classList.add('hidden');
+            const payload = JSON.parse(pako.inflate(new Uint8Array(atob(decodeURIComponent(token)).split('').map(c => c.charCodeAt(0) ^ ENCRYPTION_KEY)), {to: 'string'}));
+            globalWebhook = payload.w; currentFormTitle = payload.t;
+            document.getElementById('editor-screen')?.remove();
             document.getElementById('viewer-screen').classList.remove('hidden');
-            document.getElementById('view-form-title').innerText = data.t;
+            document.getElementById('view-form-title').innerText = payload.t;
             
             const container = document.getElementById('view-fields-container');
-            data.f.forEach(f => {
-                container.innerHTML += `<div class="space-y-1"><label class="field-label-ref text-zinc-300" data-label="${f.label}">${f.label}</label><input name="${f.id}" class="input-field w-full bg-zinc-950 p-2 rounded border border-zinc-700 text-white"></div>`;
+            payload.f.forEach(f => {
+                const wrap = document.createElement('div');
+                wrap.className = "field-wrap";
+                wrap.innerHTML = `<label class="f-label block text-sm text-zinc-300" data-name="${f.label}">${f.label}</label>` + 
+                                 (f.type === 'checkbox' ? f.meta.map(m => `<label class="block"><input type="checkbox" class="f-input" value="${m}"> ${m}</label>`).join('') 
+                                 : `<input type="text" class="f-input w-full bg-zinc-950 p-2 border border-zinc-800 rounded text-white">`);
+                container.appendChild(wrap);
             });
             document.getElementById('render-form').onsubmit = handleFormSubmit;
         }
 
-        function handleFormSubmit(e) {
+        async function handleFormSubmit(e) {
             e.preventDefault();
-            let output = `[${currentFormTitle}]\n`;
-            let fields = [];
-
-            document.querySelectorAll('.space-y-1').forEach(div => {
-                const label = div.querySelector('.field-label-ref').dataset.label;
-                const value = div.querySelector('.input-field').value;
-                output += `${label}: ${value}\n`;
-                fields.push({ name: label, value: value || "Empty", inline: false });
+            let output = `[${currentFormTitle}]\n`, fields = [];
+            document.querySelectorAll('.field-wrap').forEach(w => {
+                const label = w.querySelector('.f-label').dataset.name;
+                const val = w.querySelectorAll('input:checked').length ? Array.from(w.querySelectorAll('input:checked')).map(i => i.value).join(', ') : w.querySelector('.f-input').value;
+                output += `${label}: ${val}\n`;
+                fields.push({ name: label, value: val || "Empty", inline: false });
             });
 
-            alert("Submitted form!");
-            
-            if (globalWebhook) {
-                fetch(globalWebhook, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ embeds: [{ title: `New Submission: ${currentFormTitle}`, description: `\`\`\`\n${output}\`\`\``, color: 16753920 }] })
-                });
-            }
+            document.getElementById('output-code-block').innerText = output;
             document.getElementById('success-box').classList.remove('hidden');
             document.getElementById('submit-btn').disabled = true;
-        }
+            alert("Submitted form!");
 
-        window.onload = () => {
-            const token = new URLSearchParams(window.location.search).get('token');
-            if (token) renderPublishedForm(token);
-            else document.getElementById('editor-screen').classList.remove('hidden');
-        };
+            if (globalWebhook) {
+                try {
+                    await fetch(globalWebhook, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ embeds: [{ title: `New Submission: ${currentFormTitle}`, description: `\`\`\`\n${output}\`\`\``, color: 16753920 }] })
+                    });
+                } catch(err) { console.error(err); }
+            }
+        }
     </script>
 </body>
 </html>
