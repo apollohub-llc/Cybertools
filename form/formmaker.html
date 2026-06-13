@@ -203,7 +203,6 @@
             });
         }
 
-        // Fixed Publish Pipeline
         function publishForm() {
             const formTitle = document.getElementById('form-title-input').value || 'Untitled Form';
             const bgImage = document.getElementById('form-bg-input').value || '';
@@ -218,14 +217,13 @@
 
             try {
                 const jsonStr = JSON.stringify(payload);
-                // 1. Deflate to a Uint8Array binary array
                 const compressedUint8 = pako.deflate(jsonStr);
-                // 2. Map binary characters cleanly into an obfuscated string
+                
                 let encryptedStr = "";
                 for (let i = 0; i < compressedUint8.length; i++) {
                     encryptedStr += String.fromCharCode(compressedUint8[i] ^ ENCRYPTION_KEY);
                 }
-                // 3. Make token safe via Base64 mapping
+                
                 const finalToken = btoa(encryptedStr);
                 
                 window.location.hash = finalToken;
@@ -238,19 +236,17 @@
             }
         }
 
-        // Fixed Rendering Decoder Pipeline
         function renderPublishedForm() {
             try {
                 const token = window.location.hash.substring(1);
                 if (!token) return;
 
                 const rawEncryptedStr = atob(token);
-                // 1. Reverse XOR cipher back to raw binary positions
                 const buffer = new Uint8Array(rawEncryptedStr.length);
                 for (let i = 0; i < rawEncryptedStr.length; i++) {
                     buffer[i] = rawEncryptedStr.charCodeAt(i) ^ ENCRYPTION_KEY;
                 }
-                // 2. Inflate the true binary structure array
+                
                 const jsonRawData = pako.inflate(buffer, { to: 'string' });
                 const payload = JSON.parse(jsonRawData);
 
@@ -318,7 +314,6 @@
         function handleFormSubmit(e) {
             e.preventDefault();
             
-            const formElements = e.target.elements;
             let plainTextOutput = `[${currentFormTitle}]\n`;
             let embedFields = [];
 
