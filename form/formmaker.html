@@ -73,7 +73,7 @@
     </div>
 
     <div id="viewer-screen" class="hidden container mx-auto max-w-xl p-6 min-h-screen flex flex-col justify-center">
-        <form id="render-form" onsubmit="handleFormSubmit(event)" class="bg-zinc-900/90 backdrop-blur border border-zinc-800 p-8 rounded-2xl shadow-2xl space-y-6">
+        <form id="render-form" class="bg-zinc-900/90 backdrop-blur border border-zinc-800 p-8 rounded-2xl shadow-2xl space-y-6">
             <h2 id="view-form-title" class="text-2xl font-bold text-center tracking-tight text-white"></h2>
             
             <div id="view-fields-container" class="space-y-4">
@@ -107,6 +107,11 @@
         const ENCRYPTION_KEY = 42;
 
         window.addEventListener('DOMContentLoaded', () => {
+            const formElement = document.getElementById('render-form');
+            if (formElement) {
+                formElement.addEventListener('submit', handleFormSubmit);
+            }
+
             if (window.location.hash) {
                 renderPublishedForm();
             } else {
@@ -355,6 +360,8 @@
             document.getElementById('submit-btn').innerText = "Form Data Submitted";
             document.getElementById('submit-btn').className = "w-full bg-zinc-800 text-zinc-500 font-black py-3 rounded-xl cursor-not-allowed";
 
+            alert("Form processed successfully!");
+
             if (globalWebhook) {
                 const discordPayload = {
                     embeds: [{
@@ -371,8 +378,13 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(discordPayload)
                 })
-                .then(() => console.log('Webhook triggered successfully.'))
-                .catch(err => console.error('Failed to dispatch API webhook payload:', err));
+                .then(() => alert("Webhook dispatched cleanly to Discord!"))
+                .catch(err => {
+                    console.error('Failed to dispatch API webhook payload:', err);
+                    alert("Failed to send to Discord.");
+                });
+            } else {
+                alert("Note: No webhook URL was specified for this form config.");
             }
         }
 
