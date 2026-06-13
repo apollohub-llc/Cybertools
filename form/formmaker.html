@@ -66,7 +66,7 @@
                 <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl">
                     <span class="text-xs font-bold text-zinc-500 uppercase">Live Workspace Layout</span>
                     <div id="blocks-container" class="space-y-4 mt-4">
-                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -77,7 +77,7 @@
             <h2 id="view-form-title" class="text-2xl font-bold text-center tracking-tight text-white"></h2>
             
             <div id="view-fields-container" class="space-y-4">
-                </div>
+            </div>
 
             <button type="submit" id="submit-btn" class="w-full bg-amber-500 hover:bg-amber-600 text-black font-black py-3 rounded-xl transition-all cursor-pointer">
                 Submit Form
@@ -107,13 +107,13 @@
         const ENCRYPTION_KEY = 42;
 
         window.addEventListener('DOMContentLoaded', () => {
-            const formElement = document.getElementById('render-form');
-            if (formElement) {
-                formElement.addEventListener('submit', handleFormSubmit);
-            }
+            // Check both query param string (?token=...) or legacy Hash string (#...)
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryToken = urlParams.get('token');
+            const hashToken = window.location.hash.substring(1);
 
-            if (window.location.hash) {
-                renderPublishedForm();
+            if (queryToken || hashToken) {
+                renderPublishedForm(queryToken || hashToken);
             } else {
                 document.getElementById('editor-screen').classList.remove('hidden');
                 addBlock('text');
@@ -231,22 +231,25 @@
                 
                 const finalToken = btoa(encryptedStr);
                 
-                window.location.hash = finalToken;
-                navigator.clipboard.writeText(window.location.href);
-                renderPublishedForm();
+                // Save to clean URL query parameter structure instead of fragile hashes
+                const newUrl = window.location.origin + window.location.pathname + '?token=' + encodeURIComponent(finalToken);
+                window.history.pushState({ path: newUrl }, '', newUrl);
+                
+                navigator.clipboard.writeText(newUrl);
+                alert("Form link generated and copied to clipboard!");
+                renderPublishedForm(finalToken);
                 
             } catch (err) {
                 console.error(err);
-                alert("Compression framework exception triggered during compilation schema configuration runtime.");
+                alert("Error during configuration processing.");
             }
         }
 
-        function renderPublishedForm() {
+        function renderPublishedForm(token) {
             try {
-                const token = window.location.hash.substring(1);
                 if (!token) return;
 
-                const rawEncryptedStr = atob(token);
+                const rawEncryptedStr = atob(decodeURIComponent(token));
                 const buffer = new Uint8Array(rawEncryptedStr.length);
                 for (let i = 0; i < rawEncryptedStr.length; i++) {
                     buffer[i] = rawEncryptedStr.charCodeAt(i) ^ ENCRYPTION_KEY;
@@ -310,14 +313,22 @@
                     viewerContainer.appendChild(blockWrapper);
                 });
 
+                // CRITICAL FIX: Explicitly bind form submit tracking listener directly to DOM node post-generation 
+                const targetForm = document.getElementById('render-form');
+                if (targetForm) {
+                    targetForm.removeAttribute('onsubmit'); // Strip unsafe attributes
+                    targetForm.addEventListener('submit', handleFormSubmit);
+                }
+
             } catch (err) {
                 console.error(err);
-                document.body.innerHTML = `<div class="min-h-screen flex items-center justify-center text-zinc-500 text-sm">Failed to parse form. The URL parameter data is broken or corrupted.</div>`;
+                document.body.innerHTML = `<div class="min-h-screen flex items-center justify-center text-zinc-500 text-sm">Failed to parse form. Data parameter corrupted.</div>`;
             }
         }
 
         function handleFormSubmit(e) {
             e.preventDefault();
+            e.stopPropagation();
             
             let plainTextOutput = `[${currentFormTitle}]\n`;
             let embedFields = [];
@@ -360,7 +371,7 @@
             document.getElementById('submit-btn').innerText = "Form Data Submitted";
             document.getElementById('submit-btn').className = "w-full bg-zinc-800 text-zinc-500 font-black py-3 rounded-xl cursor-not-allowed";
 
-            alert("Form processed successfully!");
+            alert("Form Processed Locally Successfully!");
 
             if (globalWebhook) {
                 const discordPayload = {
@@ -378,13 +389,19 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(discordPayload)
                 })
-                .then(() => alert("Webhook dispatched cleanly to Discord!"))
+                .then(res => {
+                    if(res.ok) {
+                        alert("Dispatched clean to Discord webhook pipeline!");
+                    } else {
+                        alert("Discord API rejected payload. Check webhook limits or channel permissions.");
+                    }
+                })
                 .catch(err => {
-                    console.error('Failed to dispatch API webhook payload:', err);
-                    alert("Failed to send to Discord.");
+                    console.error(err);
+                    alert("Network configuration layout failure connecting to Discord API endpoint.");
                 });
             } else {
-                alert("Note: No webhook URL was specified for this form config.");
+                alert("Note: Data captured locally but no active Discord target endpoint webhook URL was assigned.");
             }
         }
 
