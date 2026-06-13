@@ -104,19 +104,17 @@
         let blocks = [];
         let globalWebhook = "";
         let currentFormTitle = "";
-        const ENCRYPTION_KEY = 42; // Encryption XOR Key masking character bits
+        const ENCRYPTION_KEY = 42;
 
-        // Initialization Route Handler
         window.addEventListener('DOMContentLoaded', () => {
             if (window.location.hash) {
                 renderPublishedForm();
             } else {
                 document.getElementById('editor-screen').classList.remove('hidden');
-                addBlock('text'); // Starter template block
+                addBlock('text');
             }
         });
 
-        // Add block layout structure to data engine
         function addBlock(type) {
             const blockId = 'block_' + Date.now() + Math.random().toString(36).substr(2, 4);
             const blockObj = {
@@ -129,13 +127,11 @@
             renderEditorBlocks();
         }
 
-        // Delete block from data array
         function removeBlock(id) {
             blocks = blocks.filter(b => b.id !== id);
             renderEditorBlocks();
         }
 
-        // Update block structural attributes on data mutation
         function updateBlockLabel(id, value) {
             const block = blocks.find(b => b.id === id);
             if (block) block.label = value;
@@ -161,7 +157,6 @@
             }
         }
 
-        // Render UI Block modules into Interactive Settings Cards
         function renderEditorBlocks() {
             const container = document.getElementById('blocks-container');
             container.innerHTML = '';
@@ -208,7 +203,7 @@
             });
         }
 
-        // Core Compiler: Compression + Encoding Configuration
+        // Fixed Publish Pipeline
         function publishForm() {
             const formTitle = document.getElementById('form-title-input').value || 'Untitled Form';
             const bgImage = document.getElementById('form-bg-input').value || '';
@@ -222,25 +217,19 @@
             };
 
             try {
-                // 1. JSON Stringify
                 const jsonStr = JSON.stringify(payload);
-                // 2. Compress via Gzip Deflate
-                const compressedData = pako.deflate(jsonStr, { to: 'string' });
-                // 3. Cipher Shift Encryption obfuscator
+                // 1. Deflate to a Uint8Array binary array
+                const compressedUint8 = pako.deflate(jsonStr);
+                // 2. Map binary characters cleanly into an obfuscated string
                 let encryptedStr = "";
-                for (let i = 0; i < compressedData.length; i++) {
-                    encryptedStr += String.fromCharCode(compressedData.charCodeAt(i) ^ ENCRYPTION_KEY);
+                for (let i = 0; i < compressedUint8.length; i++) {
+                    encryptedStr += String.fromCharCode(compressedUint8[i] ^ ENCRYPTION_KEY);
                 }
-                // 4. Transform to Base64 safe-character string
-                const finalToken = btoa(unescape(encodeURIComponent(encryptedStr)));
+                // 3. Make token safe via Base64 mapping
+                const finalToken = btoa(encryptedStr);
                 
-                // Update URL location hash directly without a full page refresh or opening empty tabs
                 window.location.hash = finalToken;
-                
-                // Copy link automatically for them anyway
                 navigator.clipboard.writeText(window.location.href);
-
-                // Run the parser instantly to load the published form layout view
                 renderPublishedForm();
                 
             } catch (err) {
@@ -249,42 +238,36 @@
             }
         }
 
-        // Render Mode Engine: Processing pipeline decode mapping parameters
+        // Fixed Rendering Decoder Pipeline
         function renderPublishedForm() {
             try {
                 const token = window.location.hash.substring(1);
                 if (!token) return;
 
-                // 1. Decode Base64 binary array
-                const rawEncryptedStr = decodeURIComponent(escape(atob(token)));
-                // 2. Reverse XOR Cipher 
-                let decryptedStr = "";
+                const rawEncryptedStr = atob(token);
+                // 1. Reverse XOR cipher back to raw binary positions
+                const buffer = new Uint8Array(rawEncryptedStr.length);
                 for (let i = 0; i < rawEncryptedStr.length; i++) {
-                    decryptedStr += String.fromCharCode(rawEncryptedStr.charCodeAt(i) ^ ENCRYPTION_KEY);
+                    buffer[i] = rawEncryptedStr.charCodeAt(i) ^ ENCRYPTION_KEY;
                 }
-                // 3. Decompress Gzip architecture bundle block
-                const jsonRawData = pako.inflate(decryptedStr, { to: 'string' });
+                // 2. Inflate the true binary structure array
+                const jsonRawData = pako.inflate(buffer, { to: 'string' });
                 const payload = JSON.parse(jsonRawData);
 
-                // Cache globally for submission access
                 globalWebhook = payload.w;
                 currentFormTitle = payload.t;
 
-                // Toggle Viewports
                 const editorScreen = document.getElementById('editor-screen');
-                if (editorScreen) editorScreen.remove(); // Remove editor DOM structures entirely
+                if (editorScreen) editorScreen.remove();
                 document.getElementById('viewer-screen').classList.remove('hidden');
 
-                // Apply Title metadata
                 document.title = payload.t;
                 document.getElementById('view-form-title').innerText = payload.t;
 
-                // Handle Dynamic Canvas Wallpaper adjustments
                 if (payload.b) {
                     document.body.style.backgroundImage = `url('${payload.b}')`;
                 }
 
-                // Render compiled DOM inputs
                 const viewerContainer = document.getElementById('view-fields-container');
                 viewerContainer.innerHTML = '';
 
@@ -332,7 +315,6 @@
             }
         }
 
-        // Live Dynamic Form submission runtime operations
         function handleFormSubmit(e) {
             e.preventDefault();
             
@@ -340,7 +322,6 @@
             let plainTextOutput = `[${currentFormTitle}]\n`;
             let embedFields = [];
 
-            // Group values by fields dynamically using DOM queries to map labels to actual values
             const wrappers = e.target.querySelectorAll('.space-y-1.5');
             
             wrappers.forEach(wrapper => {
@@ -350,13 +331,11 @@
                 const labelName = labelEl.getAttribute('data-label');
                 let valueStr = "";
 
-                // Check text inputs/passwords/emails
                 const textInput = wrapper.querySelector('input[data-type="input"]');
                 if (textInput) {
                     valueStr = textInput.value;
                 }
 
-                // Check checkboxes
                 const checkedBoxes = wrapper.querySelectorAll('input[data-type="checkbox"]:checked');
                 if (checkedBoxes.length > 0) {
                     valueStr = Array.from(checkedBoxes).map(cb => cb.value).join(', ');
@@ -364,7 +343,6 @@
                     valueStr = "None Selected";
                 }
 
-                // Append if it's a valid data-collecting field
                 if (textInput || wrapper.querySelector('input[data-type="checkbox"]')) {
                     plainTextOutput += `${labelName}: ${valueStr}\n`;
                     embedFields.push({
@@ -375,21 +353,18 @@
                 }
             });
 
-            // Put plain text output inside the view preview layout box
             document.getElementById('output-code-block').innerText = plainTextOutput;
             document.getElementById('success-box').classList.remove('hidden');
             
-            // Disable submit actions block elements to prevent double triggers
             document.getElementById('submit-btn').disabled = true;
             document.getElementById('submit-btn').innerText = "Form Data Submitted";
             document.getElementById('submit-btn').className = "w-full bg-zinc-800 text-zinc-500 font-black py-3 rounded-xl cursor-not-allowed";
 
-            // Dispatch to Webhook Destination Target if available
             if (globalWebhook) {
                 const discordPayload = {
                     embeds: [{
                         title: `New Submission: ${currentFormTitle}`,
-                        color: 16753920, // Amber color code decimal value
+                        color: 16753920,
                         fields: embedFields,
                         description: `\`\`\`\n${plainTextOutput}\`\`\``,
                         timestamp: new Date().toISOString()
