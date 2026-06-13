@@ -3,122 +3,573 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Builder</title>
+    <title>Form Builder | Discord Enabled</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <style>
-        body { background-color: #121212; color: #e0e0e0; background-size: cover; background-position: center; background-attachment: fixed; }
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            transition: background-image 0.2s ease;
+        }
+        /* Custom alert styling for better user feedback */
+        .toast-alert {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            background: #1e1e2f;
+            border-left: 4px solid #f59e0b;
+            backdrop-filter: blur(12px);
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #f3f4f6;
+            max-width: 320px;
+            transition: all 0.2s ease;
+            animation: slideIn 0.2s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        iframe {
+            pointer-events: auto;
+        }
+        .form-card {
+            transition: all 0.2s;
+        }
     </style>
 </head>
 <body class="min-h-screen font-sans antialiased">
 
-    <div id="editor-screen" class="hidden container mx-auto max-w-4xl p-6">
+    <div id="editor-screen" class="container mx-auto max-w-4xl p-6">
         <header class="flex justify-between items-center border-b border-zinc-800 pb-4 mb-6">
             <div>
                 <h1 class="text-2xl font-black text-amber-500 tracking-wider">FORM_MAKER</h1>
                 <p class="text-xs text-zinc-500">Databaseless & Serverless Encrypted Generator</p>
             </div>
-            <button onclick="publishForm()" class="bg-amber-500 hover:bg-amber-600 text-black font-bold px-6 py-2 rounded-lg transition-all cursor-pointer">Publish Form</button>
+            <button onclick="publishForm()" class="bg-amber-500 hover:bg-amber-600 text-black font-bold px-6 py-2 rounded-lg transition-all shadow-lg shadow-amber-500/20 cursor-pointer">
+                Publish Form
+            </button>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="md:col-span-1 bg-zinc-900 border border-zinc-800 p-4 rounded-xl h-fit space-y-6">
-                <input type="text" id="form-title-input" value="Untitled Form" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-sm">
-                <input type="text" id="form-bg-input" placeholder="Background Image URL" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-sm">
-                <input type="url" id="form-webhook-input" placeholder="Webhook URL" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-sm text-amber-400">
-                <div class="grid grid-cols-1 gap-2">
-                    <button onclick="addBlock('text')" class="w-full bg-zinc-950 border border-zinc-800 p-2 text-left text-sm cursor-pointer hover:border-amber-500">📝 Text Input</button>
-                    <button onclick="addBlock('checkbox')" class="w-full bg-zinc-950 border border-zinc-800 p-2 text-left text-sm cursor-pointer hover:border-amber-500">☑️ Checkbox Group</button>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Form Global Settings</label>
+                    <input type="text" id="form-title-input" value="Untitled Form" placeholder="Form Title" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-sm focus:outline-none focus:border-amber-500 mb-2">
+                    <input type="text" id="form-bg-input" placeholder="Background Image URL" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-sm focus:outline-none focus:border-amber-500 mb-2">
+                    <input type="url" id="form-webhook-input" placeholder="DISCORD WEBHOOK URL (REQUIRED for Discord notifications)" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-sm focus:outline-none focus:border-amber-500 text-amber-400">
+                </div>
+
+                <hr class="border-zinc-800">
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Add Form Blocks</label>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="addBlock('text')" class="w-full bg-zinc-950 border border-zinc-800 hover:border-amber-500/50 p-2.5 rounded text-left text-sm flex items-center gap-2 cursor-pointer transition">
+                            <span class="text-amber-500">📝</span> Text Input
+                        </button>
+                        <button onclick="addBlock('password')" class="w-full bg-zinc-950 border border-zinc-800 hover:border-amber-500/50 p-2.5 rounded text-left text-sm flex items-center gap-2 cursor-pointer transition">
+                            <span class="text-amber-500">🔒</span> Password Input
+                        </button>
+                        <button onclick="addBlock('email')" class="w-full bg-zinc-950 border border-zinc-800 hover:border-amber-500/50 p-2.5 rounded text-left text-sm flex items-center gap-2 cursor-pointer transition">
+                            <span class="text-amber-500">📧</span> Email Input
+                        </button>
+                        <button onclick="addBlock('checkbox')" class="w-full bg-zinc-950 border border-zinc-800 hover:border-amber-500/50 p-2.5 rounded text-left text-sm flex items-center gap-2 cursor-pointer transition">
+                            <span class="text-amber-500">☑️</span> Checkbox Group
+                        </button>
+                        <button onclick="addBlock('embed')" class="w-full bg-zinc-950 border border-zinc-800 hover:border-amber-500/50 p-2.5 rounded text-left text-sm flex items-center gap-2 cursor-pointer transition">
+                            <span class="text-amber-500">🔗</span> Embed Block (Video/Link/Frame)
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div class="md:col-span-2 bg-zinc-900 border border-zinc-800 p-4 rounded-xl">
-                <div id="blocks-container" class="space-y-4"></div>
+
+            <div class="md:col-span-2 space-y-4">
+                <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl">
+                    <span class="text-xs font-bold text-zinc-500 uppercase">Live Workspace Layout</span>
+                    <div id="blocks-container" class="space-y-4 mt-4">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="viewer-screen" class="hidden container mx-auto max-w-xl p-6 min-h-screen flex flex-col justify-center">
-        <form id="render-form" class="bg-zinc-900 border border-zinc-800 p-8 rounded-2xl shadow-2xl space-y-6">
-            <h2 id="view-form-title" class="text-2xl font-bold text-center text-white"></h2>
-            <div id="view-fields-container" class="space-y-4"></div>
-            <button type="submit" id="submit-btn" class="w-full bg-amber-500 hover:bg-amber-600 text-black font-black py-3 rounded-xl cursor-pointer">Submit Form</button>
+        <form id="render-form" class="bg-zinc-900/90 backdrop-blur border border-zinc-800 p-8 rounded-2xl shadow-2xl space-y-6">
+            <h2 id="view-form-title" class="text-2xl font-bold text-center tracking-tight text-white"></h2>
+            
+            <div id="view-fields-container" class="space-y-4">
+            </div>
+
+            <button type="submit" id="submit-btn" class="w-full bg-amber-500 hover:bg-amber-600 text-black font-black py-3 rounded-xl transition-all cursor-pointer">
+                ✨ Submit Form ✨
+            </button>
         </form>
-        <div id="success-box" class="hidden mt-6 bg-zinc-900 border border-zinc-800 p-6 rounded-2xl">
-            <pre id="output-code-block" class="text-xs font-mono text-zinc-300"></pre>
+
+        <div id="success-box" class="hidden mt-6 bg-zinc-900 border border-zinc-800 p-6 rounded-2xl space-y-4">
+            <div class="text-emerald-400 font-bold text-center flex items-center justify-center gap-2">
+                <span>✓</span> Submission Sent Successfully!
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-zinc-500 uppercase mb-2">Copyable Submission Text Layout:</label>
+                <div class="relative">
+                    <pre id="output-code-block" class="bg-black p-4 rounded-lg text-xs font-mono overflow-x-auto text-zinc-300 select-all border border-zinc-800"></pre>
+                    <button onclick="copyCodeBlock()" class="absolute top-2 right-2 bg-zinc-800 hover:bg-zinc-700 text-white text-[10px] uppercase font-bold px-2 py-1 rounded transition">
+                        Copy
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        let blocks = [], globalWebhook = "", currentFormTitle = "", ENCRYPTION_KEY = 42;
+        let blocks = [];
+        let globalWebhook = "";
+        let currentFormTitle = "";
+        const ENCRYPTION_KEY = 42;
+
+        // Toast notification helper (replaces boring alert with nice feedback)
+        function showToast(message, isError = false) {
+            const existingToast = document.querySelector('.toast-alert');
+            if(existingToast) existingToast.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast-alert';
+            toast.style.borderLeftColor = isError ? '#ef4444' : '#10b981';
+            toast.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <span>${isError ? '⚠️' : '✅'}</span>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                if(toast && toast.remove) toast.remove();
+            }, 4000);
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
-            const token = new URLSearchParams(window.location.search).get('token') || window.location.hash.substring(1);
-            if (token) renderPublishedForm(token);
-            else { document.getElementById('editor-screen').classList.remove('hidden'); addBlock('text'); }
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryToken = urlParams.get('token');
+            const hashToken = window.location.hash.substring(1);
+
+            if (queryToken || hashToken) {
+                renderPublishedForm(queryToken || hashToken);
+            } else {
+                document.getElementById('editor-screen').classList.remove('hidden');
+                addBlock('text');
+            }
         });
 
         function addBlock(type) {
-            blocks.push({ id: 'b_' + Date.now(), type, label: 'New Field', meta: type === 'checkbox' ? ['Option 1'] : '' });
+            const blockId = 'block_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+            const blockObj = {
+                id: blockId,
+                type: type,
+                label: type.charAt(0).toUpperCase() + type.slice(1),
+                meta: type === 'checkbox' ? ['Option 1'] : (type === 'embed' ? 'https://www.youtube.com/embed/dQw4w9WgXcQ' : '')
+            };
+            blocks.push(blockObj);
             renderEditorBlocks();
         }
 
+        function removeBlock(id) {
+            blocks = blocks.filter(b => b.id !== id);
+            renderEditorBlocks();
+        }
+
+        function updateBlockLabel(id, value) {
+            const block = blocks.find(b => b.id === id);
+            if (block) block.label = value;
+        }
+
+        function updateBlockMeta(id, value) {
+            const block = blocks.find(b => b.id === id);
+            if (block) block.meta = value;
+        }
+
+        function addCheckboxOption(blockId) {
+            const block = blocks.find(b => b.id === blockId);
+            if (block && Array.isArray(block.meta)) {
+                block.meta.push(`Option ${block.meta.length + 1}`);
+                renderEditorBlocks();
+            }
+        }
+
+        function updateCheckboxOption(blockId, index, value) {
+            const block = blocks.find(b => b.id === blockId);
+            if (block && Array.isArray(block.meta)) {
+                block.meta[index] = value;
+            }
+        }
+
         function renderEditorBlocks() {
-            document.getElementById('blocks-container').innerHTML = blocks.map(b => `<div class="bg-zinc-950 p-3 rounded border border-zinc-800 text-amber-500 text-sm">${b.label}</div>`).join('');
+            const container = document.getElementById('blocks-container');
+            if(!container) return;
+            container.innerHTML = '';
+
+            if (blocks.length === 0) {
+                container.innerHTML = `<div class="text-zinc-600 text-center py-8 text-sm">Form canvas is empty. Add blocks on the left menu.</div>`;
+                return;
+            }
+
+            blocks.forEach((block) => {
+                const card = document.createElement('div');
+                card.className = "bg-zinc-950 border border-zinc-800 p-4 rounded-lg space-y-3 relative group";
+                
+                let innerActionHtml = '';
+
+                if (block.type === 'checkbox') {
+                    innerActionHtml = `<div class="space-y-1.5 mt-2"><label class="text-xs font-bold text-zinc-500 block uppercase">Checkboxes Options</label>`;
+                    block.meta.forEach((opt, idx) => {
+                        const escapedOpt = opt.replace(/"/g, '&quot;');
+                        innerActionHtml += `
+                            <input type="text" value="${escapedOpt}" oninput="updateCheckboxOption('${block.id}', ${idx}, this.value)" class="w-full bg-zinc-900 border border-zinc-800 text-xs rounded p-1.5 focus:outline-none focus:border-amber-500">
+                        `;
+                    });
+                    innerActionHtml += `<button onclick="addCheckboxOption('${block.id}')" class="text-xs text-amber-500 mt-1 hover:underline cursor-pointer">+ Add Sub-Option</button></div>`;
+                } else if (block.type === 'embed') {
+                    innerActionHtml = `
+                        <div class="mt-2">
+                            <label class="text-xs font-bold text-zinc-500 block uppercase mb-1">Target Media Link / URL Source</label>
+                            <input type="text" value="${block.meta.replace(/"/g, '&quot;')}" oninput="updateBlockMeta('${block.id}', this.value)" placeholder="https://example.com or Video Source" class="w-full bg-zinc-900 border border-zinc-800 text-xs rounded p-1.5 focus:outline-none focus:border-amber-500">
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-center gap-4">
+                        <div class="flex-1">
+                            <label class="text-xs font-bold text-amber-500/70 uppercase tracking-tight block mb-1">${block.type} component</label>
+                            <input type="text" value="${block.label.replace(/"/g, '&quot;')}" oninput="updateBlockLabel('${block.id}', this.value)" class="bg-transparent text-white font-medium border-b border-transparent hover:border-zinc-700 focus:border-amber-500 focus:outline-none w-full py-0.5">
+                        </div>
+                        <button onclick="removeBlock('${block.id}')" class="text-zinc-500 hover:text-red-400 text-sm transition-colors cursor-pointer" title="Remove Block">✕</button>
+                    </div>
+                    ${innerActionHtml}
+                `;
+                container.appendChild(card);
+            });
         }
 
         function publishForm() {
-            const payload = { t: document.getElementById('form-title-input').value, w: document.getElementById('form-webhook-input').value, f: blocks };
-            const encrypted = btoa(String.fromCharCode(...pako.deflate(JSON.stringify(payload)).map(b => b ^ ENCRYPTION_KEY)));
-            const newUrl = window.location.origin + window.location.pathname + '?token=' + encodeURIComponent(encrypted);
-            navigator.clipboard.writeText(newUrl);
-            alert("Link copied!");
-            renderPublishedForm(encrypted);
+            const formTitle = document.getElementById('form-title-input').value || 'Untitled Form';
+            const bgImage = document.getElementById('form-bg-input').value || '';
+            const webhookUrl = document.getElementById('form-webhook-input').value || '';
+
+            if (!webhookUrl) {
+                showToast("⚠️ Warning: No Discord webhook URL provided. Submissions will still be saved locally but won't send to Discord.", true);
+            }
+
+            const payload = {
+                t: formTitle,
+                b: bgImage,
+                w: webhookUrl,
+                f: blocks.map(b => ({ id: b.id, ty: b.type, l: b.label, m: b.meta }))
+            };
+
+            try {
+                const jsonStr = JSON.stringify(payload);
+                const compressedUint8 = pako.deflate(jsonStr);
+                
+                let encryptedStr = "";
+                for (let i = 0; i < compressedUint8.length; i++) {
+                    encryptedStr += String.fromCharCode(compressedUint8[i] ^ ENCRYPTION_KEY);
+                }
+                
+                const finalToken = btoa(encryptedStr);
+                
+                const newUrl = window.location.origin + window.location.pathname + '?token=' + encodeURIComponent(finalToken);
+                window.history.pushState({ path: newUrl }, '', newUrl);
+                
+                navigator.clipboard.writeText(newUrl);
+                showToast("✅ Form link generated and copied to clipboard!");
+                renderPublishedForm(finalToken);
+                
+            } catch (err) {
+                console.error(err);
+                showToast("❌ Error during configuration processing. Check your blocks.", true);
+            }
         }
 
         function renderPublishedForm(token) {
-            const payload = JSON.parse(pako.inflate(new Uint8Array(atob(decodeURIComponent(token)).split('').map(c => c.charCodeAt(0) ^ ENCRYPTION_KEY)), {to: 'string'}));
-            globalWebhook = payload.w; currentFormTitle = payload.t;
-            document.getElementById('editor-screen')?.remove();
-            document.getElementById('viewer-screen').classList.remove('hidden');
-            document.getElementById('view-form-title').innerText = payload.t;
-            
-            const container = document.getElementById('view-fields-container');
-            payload.f.forEach(f => {
-                const wrap = document.createElement('div');
-                wrap.className = "field-wrap";
-                wrap.innerHTML = `<label class="f-label block text-sm text-zinc-300" data-name="${f.label}">${f.label}</label>` + 
-                                 (f.type === 'checkbox' ? f.meta.map(m => `<label class="block"><input type="checkbox" class="f-input" value="${m}"> ${m}</label>`).join('') 
-                                 : `<input type="text" class="f-input w-full bg-zinc-950 p-2 border border-zinc-800 rounded text-white">`);
-                container.appendChild(wrap);
+            try {
+                if (!token) return;
+
+                const rawEncryptedStr = atob(decodeURIComponent(token));
+                const buffer = new Uint8Array(rawEncryptedStr.length);
+                for (let i = 0; i < rawEncryptedStr.length; i++) {
+                    buffer[i] = rawEncryptedStr.charCodeAt(i) ^ ENCRYPTION_KEY;
+                }
+                
+                const jsonRawData = pako.inflate(buffer, { to: 'string' });
+                const payload = JSON.parse(jsonRawData);
+
+                globalWebhook = payload.w || "";
+                currentFormTitle = payload.t;
+
+                const editorScreen = document.getElementById('editor-screen');
+                if (editorScreen) editorScreen.remove();
+                document.getElementById('viewer-screen').classList.remove('hidden');
+
+                document.title = payload.t;
+                document.getElementById('view-form-title').innerText = payload.t;
+
+                if (payload.b) {
+                    document.body.style.backgroundImage = `url('${payload.b}')`;
+                } else {
+                    document.body.style.backgroundImage = '';
+                }
+
+                const viewerContainer = document.getElementById('view-fields-container');
+                viewerContainer.innerHTML = '';
+
+                payload.f.forEach(field => {
+                    const blockWrapper = document.createElement('div');
+                    blockWrapper.className = "space-y-1.5";
+                    blockWrapper.setAttribute('data-field-id', field.id);
+
+                    let fieldHtml = `<div class="field-label-ref font-semibold text-zinc-300 text-sm mb-1">${escapeHtml(field.l)}</div>`;
+
+                    if (field.ty === 'text' || field.ty === 'password' || field.ty === 'email') {
+                        fieldHtml += `<input type="${field.ty}" name="${field.id}" data-type="input" class="w-full bg-zinc-950/80 border border-zinc-800 focus:border-amber-500 rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500 text-white">`;
+                    } 
+                    else if (field.ty === 'checkbox') {
+                        fieldHtml += `<div class="space-y-2 pt-1" data-checkbox-group="true">`;
+                        if (Array.isArray(field.m)) {
+                            field.m.forEach((option) => {
+                                fieldHtml += `
+                                    <label class="flex items-center gap-3 text-sm text-zinc-300 font-normal cursor-pointer">
+                                        <input type="checkbox" name="${field.id}" value="${escapeHtml(option)}" data-type="checkbox" class="w-4 h-4 rounded text-amber-500 accent-amber-500 border-zinc-800 bg-zinc-950 focus:ring-0">
+                                        <span>${escapeHtml(option)}</span>
+                                    </label>
+                                `;
+                            });
+                        }
+                        fieldHtml += `</div>`;
+                    } 
+                    else if (field.ty === 'embed') {
+                        let embedSrc = field.m || '';
+                        if(embedSrc && !embedSrc.startsWith('http')) embedSrc = 'https://' + embedSrc;
+                        fieldHtml = `
+                            <div class="pt-2">
+                                <div class="text-xs font-bold text-zinc-500 uppercase tracking-wide mb-1.5">${escapeHtml(field.l)}</div>
+                                <div class="w-full rounded-lg overflow-hidden border border-zinc-800 bg-black aspect-video">
+                                    <iframe src="${escapeHtml(embedSrc)}" class="w-full h-full border-0" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation"></iframe>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    blockWrapper.innerHTML = fieldHtml;
+                    viewerContainer.appendChild(blockWrapper);
+                });
+
+                const targetForm = document.getElementById('render-form');
+                if (targetForm) {
+                    // Remove old listener to avoid duplication
+                    const newForm = targetForm.cloneNode(true);
+                    targetForm.parentNode.replaceChild(newForm, targetForm);
+                    newForm.id = 'render-form';
+                    newForm.addEventListener('submit', handleFormSubmit);
+                    // Re-attach success box & outputs reference
+                    window.currentDynamicForm = newForm;
+                }
+                
+                // Reset success box visibility
+                const successBox = document.getElementById('success-box');
+                if(successBox) successBox.classList.add('hidden');
+                
+                // Re-enable submit button if disabled from previous state
+                const submitBtn = document.getElementById('submit-btn');
+                if(submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "✨ Submit Form ✨";
+                    submitBtn.className = "w-full bg-amber-500 hover:bg-amber-600 text-black font-black py-3 rounded-xl transition-all cursor-pointer";
+                }
+
+            } catch (err) {
+                console.error("Render error:", err);
+                document.body.innerHTML = `<div class="min-h-screen flex items-center justify-center text-zinc-500 text-sm">Failed to parse form. Data corrupted or invalid token.</div>`;
+            }
+        }
+
+        function escapeHtml(str) {
+            if(!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if(m === '&') return '&amp;';
+                if(m === '<') return '&lt;';
+                if(m === '>') return '&gt;';
+                return m;
+            }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+                return c;
             });
-            document.getElementById('render-form').onsubmit = handleFormSubmit;
         }
 
         async function handleFormSubmit(e) {
             e.preventDefault();
-            let output = `[${currentFormTitle}]\n`, fields = [];
-            document.querySelectorAll('.field-wrap').forEach(w => {
-                const label = w.querySelector('.f-label').dataset.name;
-                const val = w.querySelectorAll('input:checked').length ? Array.from(w.querySelectorAll('input:checked')).map(i => i.value).join(', ') : w.querySelector('.f-input').value;
-                output += `${label}: ${val}\n`;
-                fields.push({ name: label, value: val || "Empty", inline: false });
-            });
+            e.stopPropagation();
+            
+            const submitButton = document.getElementById('submit-btn');
+            if(!submitButton) return;
+            
+            // Prevent double submission
+            if(submitButton.disabled) {
+                showToast("Submission already in progress...", false);
+                return;
+            }
+            
+            submitButton.disabled = true;
+            submitButton.innerText = "⏳ Sending...";
+            
+            let plainTextOutput = `📋 FORM: ${currentFormTitle}\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+            let embedFields = [];
+            let hasAnyInput = false;
 
-            document.getElementById('output-code-block').innerText = output;
-            document.getElementById('success-box').classList.remove('hidden');
-            document.getElementById('submit-btn').disabled = true;
-            alert("Submitted form!");
-
-            if (globalWebhook) {
+            const formElement = document.getElementById('render-form');
+            const fieldWrappers = formElement.querySelectorAll('.space-y-1.5');
+            
+            for (const wrapper of fieldWrappers) {
+                const labelDiv = wrapper.querySelector('.field-label-ref');
+                if (!labelDiv) continue;
+                
+                const labelName = labelDiv.innerText.trim();
+                let valueStr = "";
+                const textInput = wrapper.querySelector('input[data-type="input"]');
+                const checkboxGroup = wrapper.querySelector('[data-checkbox-group="true"]');
+                
+                if (textInput) {
+                    valueStr = textInput.value.trim();
+                    if(valueStr === "") valueStr = "(empty)";
+                    hasAnyInput = true;
+                } 
+                else if (checkboxGroup) {
+                    const checkedBoxes = wrapper.querySelectorAll('input[data-type="checkbox"]:checked');
+                    if (checkedBoxes.length > 0) {
+                        valueStr = Array.from(checkedBoxes).map(cb => cb.value).join(', ');
+                    } else {
+                        valueStr = "❌ Nothing selected";
+                    }
+                    hasAnyInput = true;
+                }
+                
+                if (textInput || checkboxGroup) {
+                    plainTextOutput += `▸ ${labelName}: ${valueStr}\n`;
+                    embedFields.push({
+                        name: labelName.substring(0, 256),
+                        value: (valueStr || "—").substring(0, 1024),
+                        inline: false
+                    });
+                }
+            }
+            
+            if (!hasAnyInput && embedFields.length === 0) {
+                showToast("⚠️ No interactive fields found to submit.", true);
+                submitButton.disabled = false;
+                submitButton.innerText = "✨ Submit Form ✨";
+                return;
+            }
+            
+            // Show success box with copyable content
+            const outputBlock = document.getElementById('output-code-block');
+            if(outputBlock) outputBlock.innerText = plainTextOutput;
+            const successBox = document.getElementById('success-box');
+            if(successBox) successBox.classList.remove('hidden');
+            
+            // Discord Webhook delivery - FIXED: robust fetch with error handling and alerts
+            let discordSent = false;
+            let discordErrorMsg = null;
+            
+            if (globalWebhook && globalWebhook.trim() !== "" && (globalWebhook.includes("discord.com/api/webhooks") || globalWebhook.startsWith("https://"))) {
+                const discordPayload = {
+                    embeds: [{
+                        title: `✅ New Submission: ${currentFormTitle}`,
+                        color: 0xF59E0B,
+                        fields: embedFields.length ? embedFields : [{ name: "Response", value: "No additional data", inline: false }],
+                        description: `\`\`\`ansi\n${plainTextOutput.substring(0, 1900)}\`\`\``,
+                        timestamp: new Date().toISOString(),
+                        footer: { text: "Form Builder • Secure Entry" }
+                    }]
+                };
+                
                 try {
-                    await fetch(globalWebhook, {
+                    const response = await fetch(globalWebhook, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ embeds: [{ title: `New Submission: ${currentFormTitle}`, description: `\`\`\`\n${output}\`\`\``, color: 16753920 }] })
+                        body: JSON.stringify(discordPayload)
                     });
-                } catch(err) { console.error(err); }
+                    
+                    if (response.ok) {
+                        discordSent = true;
+                        showToast("🎉 Discord: Submission delivered successfully!");
+                    } else {
+                        let errorText = `Discord error ${response.status}`;
+                        try {
+                            const errJson = await response.json();
+                            errorText = errJson.message || errorText;
+                        } catch(e) {}
+                        discordErrorMsg = `Discord rejected (${response.status}): ${errorText}`;
+                        showToast(`⚠️ ${discordErrorMsg}`, true);
+                    }
+                } catch (netErr) {
+                    console.error("Webhook fetch error:", netErr);
+                    discordErrorMsg = `Network error: ${netErr.message}`;
+                    showToast(`❌ Discord webhook failed: ${netErr.message}`, true);
+                }
+            } else {
+                if(globalWebhook && globalWebhook.trim() !== "") {
+                    discordErrorMsg = "Webhook URL invalid (must be Discord webhook)";
+                } else {
+                    discordErrorMsg = "No Discord webhook configured in form settings";
+                }
+                showToast(`ℹ️ Local mode: ${discordErrorMsg}`, false);
+            }
+            
+            // Final alert based on Discord outcome
+            if (globalWebhook && globalWebhook.trim() !== "" && discordSent) {
+                alert("✅ SUCCESS! Form submitted & Discord notification sent successfully!");
+            } 
+            else if (globalWebhook && globalWebhook.trim() !== "" && !discordSent) {
+                alert(`⚠️ Form saved locally but Discord failed.\nReason: ${discordErrorMsg || "Unknown webhook error"}\nData is still available below.`);
+            }
+            else {
+                alert("📦 Form processed locally. No Discord webhook was set – data saved in preview box.");
+            }
+            
+            submitButton.disabled = false;
+            submitButton.innerText = "✨ Submit Form ✨";
+        }
+
+        function copyCodeBlock() {
+            const codeText = document.getElementById('output-code-block');
+            if(codeText && codeText.innerText) {
+                navigator.clipboard.writeText(codeText.innerText);
+                showToast("📋 Submission text copied to clipboard!");
+            } else {
+                showToast("Nothing to copy yet.", true);
             }
         }
+
+        // Expose functions globally
+        window.addBlock = addBlock;
+        window.removeBlock = removeBlock;
+        window.updateBlockLabel = updateBlockLabel;
+        window.updateBlockMeta = updateBlockMeta;
+        window.addCheckboxOption = addCheckboxOption;
+        window.updateCheckboxOption = updateCheckboxOption;
+        window.publishForm = publishForm;
+        window.copyCodeBlock = copyCodeBlock;
+        window.handleFormSubmit = handleFormSubmit;
     </script>
 </body>
 </html>
